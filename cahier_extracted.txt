@@ -1,0 +1,230 @@
+﻿CAHIER DES CHARGES COMPLET — SÛRCHECK AI
+MVP de prévention et d’analyse des risques d’arnaques numériquesBénin → Afrique francophoneDurée cible : 14 jours
+1. VISION DU PRODUIT
+SûrCheck AI est une plateforme web mobile-first permettant aux utilisateurs d’analyser rapidement un message, un SMS ou un lien potentiellement frauduleux avant d’envoyer de l’argent ou de partager des informations sensibles.
+Promesse principale :« Avant d’envoyer ton argent, vérifie. »
+Le produit ne doit jamais affirmer automatiquement qu’une personne est criminelle. Il doit présenter un niveau de risque, les signaux détectés et des recommandations de sécurité.
+2. PROBLÈME
+Les utilisateurs reçoivent régulièrement des faux messages Mobile Money, de fausses offres d’emploi, de faux concours, de faux cadeaux, de faux investissements, des messages WhatsApp suspects et des liens de phishing.
+Avant une transaction, beaucoup se demandent :« Est-ce que je peux faire confiance à ça ? »
+Le MVP doit apporter une réponse simple, rapide et compréhensible.
+3. OBJECTIF DU MVP
+Permettre à un utilisateur de :1. Coller un message suspect.2. Coller un lien suspect.3. Recevoir un score de risque de 0 à 100.4. Comprendre les signaux détectés.5. Signaler un numéro, un lien ou un message.6. Consulter son historique.7. Tester le produit gratuitement avant toute monétisation.
+Le MVP ne cherche pas à détecter parfaitement toutes les arnaques du monde. Son objectif est de valider l’intérêt réel des utilisateurs.
+4. UTILISATEURS CIBLES
+Marché initial : Bénin.Cibles prioritaires :- Étudiants.- Travailleurs.- Commerçants.- Utilisateurs Mobile Money.- Chercheurs d’emploi.- Utilisateurs WhatsApp et Facebook.
+Expansion progressive :1. Bénin.2. Togo.3. Côte d’Ivoire.4. Sénégal.5. Burkina Faso.
+Le produit doit progressivement intégrer les réalités et scénarios locaux.
+5. FONCTIONNALITÉS MVP
+A. Analyse de texteL’utilisateur colle un message suspect.Résultat :- Niveau : Faible / Prudence / Élevé.- Score de risque.- Signaux détectés.- Catégorie probable.- Conseils de sécurité.
+B. Analyse de lienLe système :- valide l’URL ;- vérifie la base interne ;- consulte des sources de réputation/phishing compatibles avec l’usage ;- retourne un niveau de risque.
+C. Signalement communautaireL’utilisateur peut signaler :- un numéro ;- un lien ;- un message ;- une page.
+Catégories :- Mobile Money ;- faux emploi ;- faux investissement ;- phishing ;- faux cadeau ;- usurpation ;- autre.
+D. Historique utilisateur.E. Interface d’administration minimale pour modérer les signalements.
+6. RÈGLES JURIDIQUES ET DE SÉCURITÉ
+Ne jamais publier automatiquement qu’un individu est « un escroc ».
+Utiliser plutôt :- « Risque potentiel détecté »- « Plusieurs signaux nécessitent une vérification »- « Signalement communautaire non confirmé »- « Vérifiez avant toute transaction »
+Les signalements doivent être modérés.Prévoir consentement, politique de confidentialité, limitation des données collectées et anonymisation lorsque des données sont utilisées pour améliorer le système.
+7. ARCHITECTURE TECHNIQUE
+Architecture recommandée :
+Utilisateur→ Application Next.js→ API / moteur d’analyse→ Règles + modèle ML + vérification URL→ PostgreSQL
+Stack :- Frontend : Next.js + TypeScript + Tailwind CSS.- Backend IA : Python + FastAPI.- Machine Learning : scikit-learn.- Traitement données : pandas.- Base : PostgreSQL.- Déploiement MVP : Vercel pour Next.js et API compatible.- Paiement futur : FedaPay.- Détection URL : PhishTank/OpenPhish ou autres sources compatibles après vérification des conditions d’utilisation.
+8. BASE DE DONNÉES
+Tables principales :
+users- id- name- email- password_hash- created_at
+analyses- id- user_id- content_type- content- risk_score- risk_level- category- signals- created_at
+reports- id- user_id- report_type- target- description- status- created_at
+reported_numbers- id- phone_hash- report_count- status- last_reported_at
+reported_urls- id- normalized_url- report_count- status
+risk_rules- id- pattern- category- score_weight- active
+9. MOTEUR D’ANALYSE
+Niveau 1 : règles locales à coût nul.Exemples :- Demande de code secret : +50.- Demande d’argent : +25.- Urgence artificielle : +15.- Promesse de gain : +25.- Lien suspect : +30.
+Niveau 2 : modèle ML.Classificateur initial possible :- Logistic Regression.- Naive Bayes.- Linear SVM.
+Sortie :- classification ;- confiance ;- catégorie probable.
+Niveau 3 : vérification externe des URLs.
+Les modèles coûteux de type LLM ne doivent être utilisés qu’ultérieurement pour les cas ambigus.
+10. PROMPT SYSTÈME POUR UNE IA AVANCÉE
+Tu es un assistant spécialisé dans l’analyse des risques de fraude numérique.
+Analyse un message ou une offre et identifie les signaux potentiellement associés à une tentative de fraude.
+Tu ne dois jamais affirmer qu’une personne est criminelle sans preuve vérifiable.
+Analyse notamment :1. Demande d’argent.2. Pression psychologique.3. Urgence artificielle.4. Demande de code ou d’information sensible.5. Promesse de gain irréaliste.6. Usurpation possible.7. Lien ou contact suspect.
+Retourne :- niveau de risque ;- score entre 0 et 100 ;- signaux détectés ;- catégorie probable ;- recommandations de sécurité.
+Utilise un langage simple destiné au grand public.
+11. PROMPT POUR ANTIGRAVITY
+Construis une application web mobile-first appelée SûrCheck AI.
+Mission :Permettre aux utilisateurs de vérifier des messages et liens potentiellement frauduleux avant d’envoyer de l’argent ou de partager des informations sensibles.
+Stack :Frontend : Next.js, TypeScript, Tailwind CSS.Backend : Python FastAPI.Base de données : PostgreSQL.
+Fonctionnalités MVP :1. Inscription et connexion.2. Analyse d’un message collé.3. Score de risque entre 0 et 100.4. Trois niveaux : Faible, Prudence, Élevé.5. Catégories : Mobile Money, Faux emploi, Faux investissement, Faux cadeau, Usurpation, Phishing.6. Page d’analyse.7. Historique utilisateur.8. Formulaire de signalement.9. Dashboard administrateur minimal.10. Interface optimisée pour smartphone.
+Le design doit inspirer confiance, sécurité et simplicité.
+Ne jamais afficher qu’une personne est un criminel.Utiliser des formulations telles que :« Risque potentiel détecté »« Plusieurs signalements nécessitent une vérification »
+Construis une architecture modulaire, propre et documentée.
+12. PLAN D’IMPLÉMENTATION — 14 JOURS
+JOUR 1 : Initialiser Next.js, Python/FastAPI, GitHub et PostgreSQL.JOUR 2 : Construire accueil, inscription, connexion et page d’analyse.JOUR 3 : Authentification et gestion utilisateur.JOUR 4 : Endpoint POST /analyze et analyse de texte.JOUR 5 : Créer les règles anti-arnaque et le système de score.JOUR 6 : Préparer dataset et premier classificateur scikit-learn.JOUR 7 : Afficher score, niveau, signaux et catégorie.JOUR 8 : Ajouter analyse des liens.JOUR 9 : Ajouter les signalements communautaires.JOUR 10 : Construire dashboard utilisateur.JOUR 11 : Construire administration et modération.JOUR 12 : Ajouter sécurité, validation et rate limiting.JOUR 13 : Tester avec messages normaux et suspects puis corriger.JOUR 14 : Déployer et recruter les premiers testeurs.
+13. MODÈLE DE FACTURATION
+Phase MVP : privilégier d’abord la validation gratuite.
+Après validation :
+Offre gratuite :- 5 analyses.
+Pack Mini :- 5 analyses supplémentaires : 100 FCFA.
+Pack Standard :- 20 analyses : 300 FCFA.
+Pack Protection :- 50 analyses : 500 FCFA.
+Premium ultérieur :- Environ 500 FCFA/mois à tester.- Historique.- Analyses supplémentaires.- Fonctionnalités avancées.
+Recommandation : commencer par Freemium + crédits. Tester ensuite si les utilisateurs préfèrent réellement un abonnement.
+14. PAIEMENTS
+Flux cible :
+Utilisateur→ Choisit un pack→ Paiement Mobile Money / carte→ Prestataire de paiement→ Webhook de confirmation→ Ajout des crédits au compte
+Pour le MVP, utiliser l’environnement Sandbox du prestataire de paiement avant tout passage en production.
+15. APIs ET DOCUMENTATIONS À CONSULTER
+Vercel FastAPI :https://vercel.com/docs/frameworks/backend/fastapi
+Déploiement Vercel :https://vercel.com/docs/deployments/overview
+FedaPay API :https://docs.fedapay.com/api-reference/introduction-fr
+PhishTank API :https://phishtank.org/api_info.php
+OpenPhish :https://openphish.com/phishing_feeds.html
+Avant toute intégration commerciale, vérifier les licences, limites et conditions d’utilisation des données et APIs.
+16. ACQUISITION DES PREMIERS UTILISATEURS
+Objectif initial : 20 à 50 vrais testeurs au Bénin.
+Canaux :- TikTok.- Facebook.- Groupes WhatsApp.- Étudiants.- Commerçants.- Communautés technologiques.
+Message marketing :« Tu viens de recevoir un message qui te demande d’envoyer de l’argent ? Vérifie avant de payer. »
+Ne pas commencer immédiatement avec une grosse publicité payante.Demander d’abord :« Teste gratuitement et dis-moi si l’analyse t’aurait réellement empêché de prendre une mauvaise décision. »
+Créer des démonstrations à partir de scénarios fictifs ou anonymisés.
+17. STRATÉGIE D’EXPANSION
+Phase 1 : Bénin.Construire les premiers scénarios locaux.
+Phase 2 : Togo.Ajouter les patterns locaux et tester.
+Phase 3 : Côte d’Ivoire et Sénégal.
+Pour chaque pays :1. Identifier les scénarios locaux.2. Collecter des exemples légalement.3. Ajouter les règles.4. Tester avec des utilisateurs locaux.5. Déployer progressivement.
+18. INDICATEURS DE SUCCÈS
+Suivre :- Nombre de visiteurs.- Nombre d’inscriptions.- Première analyse réalisée.- Nombre d’utilisateurs qui reviennent.- Nombre de signalements.- Taux de faux positifs.- Taux de faux négatifs.- Nombre de personnes prêtes à payer.
+Objectif principal :Valider que les utilisateurs ont réellement besoin d’un outil répondant à :« Est-ce que je peux faire confiance à ça ? »
+19. CE QU’IL NE FAUT PAS CONSTRUIRE AU MVP
+Ne pas construire immédiatement :- Application Android native.- Application iPhone native.- Assistant WhatsApp automatique.- Analyse vocale.- Grande IA propriétaire.- Réseau social.- Système complexe d’abonnement.- Reconnaissance parfaite de toutes les arnaques.
+Le MVP doit rester :Coller → Analyser → Comprendre → Signaler.
+20. CONCLUSION STRATÉGIQUE
+Le véritable avantage compétitif à long terme ne sera pas seulement l’interface ou le modèle IA.
+L’objectif est de construire progressivement une base de connaissances contextuelle sur les méthodes d’arnaque en Afrique francophone, avec :- données anonymisées ;- signalements modérés ;- patterns locaux ;- vérifications ;- amélioration continue.
+Le succès du MVP dépendra avant tout de l’utilité réelle, de la confiance des utilisateurs et de la qualité de l’analyse, pas de la quantité de fonctionnalités.
+COMPLÉMENTS STRATÉGIQUES ET TECHNIQUES — SÛRCHECK AI
+Cette partie complète le cahier des charges existant sans répéter ses sections. Elle formalise les décisions et orientations déjà définies pour transformer le MVP en produit réellement testable, monétisable et extensible.
+21. POSITIONNEMENT ET PROMESSE
+SûrCheck est un outil d’aide à la décision, pas un « détecteur d’escrocs ». Il transforme une situation douteuse en niveau de risque, preuves/signaux compréhensibles et actions concrètes.
+Promesse prioritaire à tester : « Vérifie avant d’envoyer ton argent. » Variante : « Envoie le message avant d’envoyer l’argent. »
+Moment de valeur : juste avant un paiement ou avant de partager un code, une information sensible ou un document.
+Le produit doit répondre dans cet ordre : Quel est le risque ? Pourquoi ? Que dois-je faire maintenant ?
+Ne jamais afficher « 100 % sûr ». Pour un résultat rassurant, utiliser plutôt « Aucun signal majeur détecté dans les éléments analysés ».
+22. PARCOURS UTILISATEUR
+Le premier contact doit être sans friction : landing → saisie/import → analyse → résultat. L’inscription ne doit pas bloquer la première valeur lorsque cela n’est pas nécessaire.
+Résultat gratuit : niveau + score + quelques signaux prioritaires. Rapport approfondi : détails supplémentaires, vérifications disponibles et recommandations avancées.
+Paiement : création du checkout → paiement → confirmation serveur par webhook → crédit/déblocage → historique.
+Actions principales après résultat : « Vérifier un autre contenu », « Signaler », « Partager » et, lorsque disponible, « Obtenir l’analyse détaillée ».
+23. MOTEUR DE DÉCISION HYBRIDE
+Le score ne doit jamais dépendre uniquement d’un LLM. Il combine règles déterministes, modèle ML, intelligence de réputation des URLs et signaux communautaires modérés.
+Pipeline : normalisation → extraction → règles → ML → réputation → agrégation → calibration → explication.
+Signaux prioritaires : demande de PIN/OTP/code, demande d’argent, urgence artificielle, menace, gain irréaliste, paiement préalable, usurpation, changement inhabituel de canal, URL incohérente ou raccourcie, demande d’informations sensibles.
+Chaque résultat doit conserver les facteurs ayant contribué au score et la version du moteur utilisée.
+Prévoir une notion de confiance/incertitude : lorsque les éléments sont insuffisants, le système doit le dire plutôt que forcer une conclusion.
+24. SCÉNARIOS LOCAUX À COUVRIR
+Faux agent Mobile Money, faux service client, faux vendeur en ligne, faux recrutement, faux concours/cadeau, faux investissement, usurpation d’un proche, faux paiement/reçu, fausse livraison, faux remboursement, phishing de compte, faux support technique et demandes de codes.
+Pour chaque scénario : exemples anonymisés, expressions locales, signaux forts/faibles, règles, contre-exemples légitimes et cas limites.
+Conserver une bibliothèque par pays afin que le vocabulaire et les pratiques puissent évoluer sans modifier toute l’application.
+25. ANALYSE D’IMAGE / OCR
+Permettre l’import d’une capture de SMS, WhatsApp, publication, annonce, page de paiement ou reçu.
+Pipeline : image → OCR → nettoyage → extraction des URLs/numéros → moteur de risque → résultat.
+Gérer les captures compressées, texte partiellement lisible, caractères spéciaux et mélange français/anglais.
+Les images doivent être conservées le moins longtemps possible et seulement selon une politique de conservation explicite.
+26. RÉPUTATION DES NUMÉROS
+Après le cœur texte/image, ajouter une recherche de numéro basée sur les signalements modérés, leur récence, fréquence, catégorie et qualité.
+Afficher « Des signalements ont été reçus concernant ce numéro » plutôt que « ce numéro appartient à un escroc ».
+Normaliser les numéros par pays et utiliser autant que possible une empreinte/hachage afin de limiter l’exposition du numéro brut.
+27. BASE DE CONNAISSANCES — ACTIF STRATÉGIQUE
+L’avantage défendable de SûrCheck doit devenir sa base de connaissances sur les méthodes d’arnaque en Afrique francophone, et pas seulement son interface ou son modèle IA.
+Boucle d’amélioration : analyse → feedback → signalement → modération → enrichissement des patterns/règles → nouvelle analyse.
+Stocker les scénarios, pays, canaux, signaux, domaines, moyens de paiement, statut de vérification et résultats des validations.
+Un grand nombre de signalements augmente un signal de réputation mais ne constitue pas automatiquement une preuve.
+28. MODÉRATION ET CONTESTATION
+Workflow : nouveau signalement → détection des doublons → examen des éléments → classement → décision → journalisation.
+Statuts : nouveau, en vérification, confirmé par éléments suffisants, non confirmé, contesté, retiré.
+Conserver les preuves privées et publier uniquement les informations nécessaires à l’évaluation du risque.
+Prévoir un mécanisme de contestation/correction et des logs d’administration.
+29. MONÉTISATION À TESTER
+Le modèle prioritaire devient : valeur gratuite immédiate → paiement pour approfondir. Les prix doivent être expérimentés, pas considérés comme définitifs.
+Tests possibles : analyse simple 100–200 FCFA ; rapport détaillé 300 FCFA ; formule renforcée 500 FCFA.
+Les packs peuvent être structurés autour de 5, 20 et 50 analyses. Tester également l’achat d’une seule analyse premium pour réduire la friction.
+L’abonnement mensuel ne doit être introduit qu’après observation d’un usage récurrent. Il peut ensuite inclure un quota d’analyses, historique avancé et alertes.
+Objectif économique du MVP : obtenir des paiements réels au moment où l’utilisateur ressent un risque, avant d’optimiser le revenu récurrent.
+30. PAIEMENT ET INTÉGRITÉ DES TRANSACTIONS
+Le navigateur ne doit jamais décider qu’un paiement est réussi. La source de vérité est la confirmation serveur du prestataire.
+Utiliser un identifiant de transaction unique et un traitement idempotent afin d’éviter les doubles crédits.
+Ne jamais exposer les clés secrètes dans le frontend. Utiliser des variables d’environnement côté serveur.
+FedaPay peut servir pour tester les paiements locaux ; Chariow peut être évalué pour des produits numériques et son checkout. Vérifier avant production les fonctionnalités, frais, limites et conditions actuelles.
+31. ARCHITECTURE DE PRODUCTION
+Frontend : Next.js + TypeScript + Tailwind CSS.
+API : FastAPI/Python avec endpoints versionnés.
+Base : PostgreSQL ; stockage objet temporaire pour les images.
+Services logiques : analyse, OCR, intelligence URL, scoring, réputation, paiement, notifications et administration.
+Déployer initialement sur Vercel si les contraintes d’exécution sont compatibles, tout en gardant l’architecture suffisamment découplée pour déplacer les traitements lourds plus tard.
+Ajouter logs structurés, suivi des erreurs, temps d’analyse, coût par analyse, webhooks et disponibilité.
+32. API MINIMALE
+POST /api/v1/analyze/text — analyse texte.
+POST /api/v1/analyze/image — OCR puis analyse.
+POST /api/v1/analyze/url — normalisation et vérification URL.
+GET /api/v1/analyses — historique.
+POST /api/v1/reports — signalement.
+POST /api/v1/checkout — création du paiement.
+POST /api/v1/webhooks/payment — confirmation serveur.
+GET /api/v1/reputation/phone/{hash} — signal de réputation.
+GET/PATCH /api/v1/admin/reports — modération.
+33. DONNÉES À AJOUTER
+analysis_features : signaux, scores intermédiaires, version du moteur et règles déclenchées.
+analysis_feedback : utilité perçue, correction éventuelle et commentaire.
+payment_transactions : prestataire, identifiant externe, montant, devise, statut, produit, utilisateur et webhook.
+scam_patterns : scénario, pays, canal, expressions, poids, version et statut.
+reputation_events : cible, empreinte, source, catégorie, confiance, modération et dates.
+admin_audit_logs : administrateur, action, objet, valeurs avant/après et date.
+Conserver la version du moteur sur chaque analyse pour assurer l’audit et la reproductibilité.
+34. SÉCURITÉ ET CONFIDENTIALITÉ
+Rate limiting par IP/compte, anti-spam des signalements et quotas d’analyse.
+Ne pas ouvrir directement des URLs arbitraires depuis le serveur applicatif. Utiliser des services de réputation ou un environnement isolé.
+Valider taille/type des fichiers, empêcher les uploads exécutables et protéger les secrets.
+Minimiser les données personnelles et prévoir politique de confidentialité, durée de conservation, suppression et conditions d’utilisation.
+Les captures/conversations privées ne doivent pas servir à entraîner le système sans base légale et consentement approprié.
+Afficher clairement que SûrCheck fournit une évaluation de risque et non une garantie.
+35. QUALITÉ DU MODÈLE
+Construire un jeu de validation indépendant avec messages légitimes et frauduleux provenant de plusieurs catégories.
+Mesurer précision, rappel, F1, matrice de confusion, faux positifs, faux négatifs et calibration.
+Tester particulièrement les erreurs dangereuses : faux négatif sur une demande de code, phishing, faux emploi ou faux paiement ; faux positif sur un commerce légitime.
+Utiliser les retours humains pour améliorer règles, données et interface.
+Prévoir une sortie « incertain » pour les cas où les preuves sont insuffisantes.
+36. ACQUISITION ET VIRALITÉ
+Priorité : TikTok, Facebook et partage WhatsApp.
+Formats : « Tu reçois ce message, tu fais quoi ? » → analyse SûrCheck → signaux → action recommandée → « Vérifie avant de payer ».
+Scénarios de contenu : faux recrutement, faux vendeur, faux concours, faux remboursement, faux service client, faux reçu, phishing.
+Utiliser uniquement des cas fictifs ou anonymisés dans les démonstrations.
+Commencer organiquement et ne lancer une publicité significative qu’après validation du clic, de l’analyse et du paiement.
+37. FUNNEL ET KPI
+Suivre : vue vidéo → clic → visite → première analyse → résultat → paiement → deuxième analyse → retour à 7/30 jours.
+Mesurer séparément la curiosité et les utilisateurs arrivant juste avant une transaction.
+KPIs : analyses/jour, analyses/utilisateur, taux de complétion, temps de réponse, signalements, retour, conversion paiement, revenu par payeur, coût par analyse et faux positifs/négatifs.
+Le signal de validation principal est le comportement : l’utilisateur rencontre un doute, utilise SûrCheck, comprend le résultat et accepte éventuellement de payer pour approfondir.
+38. VALIDATION TERRAIN
+Tester d’abord auprès de 20 à 50 personnes au Bénin.
+Collecter des cas anonymisés couvrant les scénarios prioritaires.
+Après chaque analyse, demander : « Est-ce que ce résultat vous a aidé ? » et « Auriez-vous payé pour une vérification plus complète ? »
+Tester séparément prix, formulation et présentation du paywall.
+Corriger chaque semaine à partir des erreurs observées avant d’augmenter fortement l’acquisition.
+39. ÉVOLUTION POST-MVP
+V1.1 : analyse d’images renforcée, réputation des numéros, partage, packs de crédits.
+V1.2 : bibliothèque de scénarios, alertes sur tendances, meilleure détection multilingue et tableau de bord des menaces.
+V2 : assistance après incident (« j’ai déjà envoyé l’argent »), checklist de réaction, aide au signalement officiel et mode famille.
+V2+ : extension navigateur, partage depuis mobile, intégrations WhatsApp/Instagram et API B2B.
+Ne construire les intégrations complexes qu’après validation du cœur produit.
+40. PRINCIPES NON NÉGOCIABLES
+Ne jamais promettre la sécurité absolue.
+Expliquer les résultats importants.
+Distinguer risque, preuve et signalement.
+Donner une action immédiate.
+Minimiser les données.
+Modérer les signalements.
+Confirmer les paiements côté serveur.
+Optimiser le coût par analyse.
+Utiliser l’IA comme composant d’un système hybride.
+Construire d’abord pour les scénarios béninois et ouest-africains.
+ANNEXE — PROMPT ANTIGRAVITY CONSOLIDÉ
+Tu es l’agent de développement principal de SûrCheck AI. Construis une application web mobile-first de prévention des arnaques numériques, d’abord pour le Bénin puis l’Afrique francophone.PRINCIPE : SûrCheck n’est pas un chatbot « arnaque/pas arnaque ». Utilise une architecture hybride : règles déterministes + ML + intelligence URL + signaux communautaires modérés + IA pour expliquer.PARCOURS : landing → analyse sans friction → score 0–100 → niveau → signaux → recommandation → signalement/partage → rapport approfondi payant lorsque le paywall est activé.STACK : Next.js, TypeScript, Tailwind ; FastAPI/Python ; PostgreSQL ; scikit-learn ; stockage objet temporaire ; Vercel si compatible.MOTEUR : normalisation → extraction → règles → ML → réputation → agrégation/calibration → explication. Chaque analyse doit enregistrer les signaux, scores intermédiaires et version du moteur.CATEGORIES : Mobile Money, phishing, faux emploi, faux investissement, faux cadeau/concours, usurpation, faux vendeur, faux paiement/reçu, fausse livraison, faux remboursement, faux support technique.IMAGES : OCR de captures WhatsApp/SMS/publications/reçus, puis même pipeline d’analyse.REPUTATION : pour les numéros et URLs, afficher des signaux de réputation et des signalements modérés, jamais une accusation définitive.PAIEMENT : confirmation exclusivement par webhook serveur ; traitement idempotent ; clés secrètes côté serveur.SECURITE : rate limiting, validation des fichiers, protection des secrets, minimisation des données, logs d’audit, suppression contrôlée des images, protection contre les abus et accès admin sécurisé.DONNEES : analyses, features, feedback, transactions, patterns, événements de réputation et logs admin. Versionner le moteur.UX : mobile-first, langage simple, résultat en trois niveaux. Ne jamais dire « 100 % sûr ». En cas d’incertitude, le système doit le reconnaître.DEVELOPPEMENT : inspecte l’existant avant de coder ; ne réécris pas inutilement ; travaille module par module ; teste chaque module ; vérifie types/lint ; gère les erreurs ; documente ; commit Git après chaque étape importante.ORDRE MVP : landing, analyse texte, scoring explicable, OCR image, URL, historique, signalement, admin/modération, paiement/webhook, sécurité/analytics/déploiement.NE PAS CONSTRUIRE AVANT VALIDATION : application native, assistant WhatsApp automatisé, réseau social, IA propriétaire complexe ou fonctionnalités lourdes non nécessaires.

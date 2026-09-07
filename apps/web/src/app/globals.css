@@ -1,0 +1,31 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --brand-primary: #1e3a8a;
+    --brand-accent: #2563eb;
+    
+    /* Couleurs fixes et invariables de niveau de risque */
+    --risk-faible-text: #166534;
+    --risk-faible-bg: #dcfce7;
+    --risk-faible-border: #86efac;
+    
+    --risk-prudence-text: #92400e;
+    --risk-prudence-bg: #fef3c7;
+    --risk-prudence-border: #fcd34d;
+    
+    --risk-eleve-text: #991b1b;
+    --risk-eleve-bg: #fee2e2;
+    --risk-eleve-border: #fca5a5;
+  }
+}
+
+/* Accessibilité et ergonomie mobile */
+button, a, input, textarea, select {
+  touch-action: manipulation;
+}
+
+:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
