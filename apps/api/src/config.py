@@ -1,6 +1,10 @@
-"""Configuration globale de l'API SûrCheck AI."""
+"""Configuration globale de l'API SûrCheck AI.
+Phase 8 — Variables d'environnement validées pour la production.
+"""
 
 import os
+import json
+from typing import Optional
 from pydantic_settings import BaseSettings
 
 
@@ -23,7 +27,7 @@ class Settings(BaseSettings):
         "PHONE_HASH_SALT", "surcheck_bj_secure_salt_2026_antigravity_trust"
     )
     JWT_SECRET_KEY: str = os.getenv(
-        "JWT_SECRET_KEY", "surcheck_jwt_secret_key_production_grade_super_secret"
+        "JWT_SECRET_KEY", "surcheck_jwt_secret_key_development_only_change_in_production"
     )
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440  # 24h
@@ -59,12 +63,11 @@ class Settings(BaseSettings):
     CHARIOW_PRODUCT_PACK_10: str = os.getenv("CHARIOW_PRODUCT_PACK_10", "prd_pack_10")
     CHARIOW_PRODUCT_PACK_25: str = os.getenv("CHARIOW_PRODUCT_PACK_25", "prd_pack_25")
 
-    # Tarifs officiels SûrCheck réaménagés (minimum Chariow : 565 FCFA)
+    # Tarifs officiels SûrCheck (minimum Chariow : 565 FCFA)
     CREDIT_PACK_1_FCFA: int = 600      # Analyse unique = 600 FCFA
     CREDIT_PACK_5_FCFA: int = 1500     # 5 analyses = 1 500 FCFA (300 F / unité)
-    CREDIT_PACK_10_FCFA: int = 2500    # 10 analyses = 2 500 FCFA (250 F / unité) - Populaire
+    CREDIT_PACK_10_FCFA: int = 2500    # 10 analyses = 2 500 FCFA (250 F / unité) — Populaire
     CREDIT_PACK_25_FCFA: int = 5000    # 25 analyses = 5 000 FCFA (200 F / unité)
-
 
     # URL publique pour redirection post-checkout
     APP_URL: str = os.getenv("APP_URL", "http://localhost:3000")
@@ -73,6 +76,18 @@ class Settings(BaseSettings):
         "env_file": ("../../.env", "../.env", ".env"),
         "extra": "allow",
     }
+
+    def model_post_init(self, __context):
+        """Parse CORS_ORIGINS depuis l'env si fourni en JSON (format Railway/Vercel)."""
+        raw = os.getenv("CORS_ORIGINS")
+        if raw:
+            try:
+                parsed = json.loads(raw)
+                if isinstance(parsed, list):
+                    object.__setattr__(self, "CORS_ORIGINS", parsed)
+            except (json.JSONDecodeError, TypeError):
+                # Format fallback : séparé par des virgules
+                object.__setattr__(self, "CORS_ORIGINS", [o.strip() for o in raw.split(",")])
 
 
 settings = Settings()
