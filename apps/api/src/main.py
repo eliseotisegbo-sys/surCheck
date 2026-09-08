@@ -5,7 +5,7 @@ Conforme aux standards de sécurité et d'audit.
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .config import settings
-from .routers import analyze, reports, auth
+from .routers import analyze, reports, auth, payment, credits, admin
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -28,6 +28,10 @@ app.add_middleware(
 app.include_router(analyze.router, prefix=settings.API_PREFIX)
 app.include_router(reports.router, prefix=settings.API_PREFIX)
 app.include_router(auth.router, prefix=settings.API_PREFIX)
+app.include_router(payment.router, prefix=settings.API_PREFIX)
+app.include_router(credits.router, prefix=settings.API_PREFIX)
+app.include_router(admin.router, prefix=settings.API_PREFIX)
+
 
 
 @app.get("/health", tags=["Système"])

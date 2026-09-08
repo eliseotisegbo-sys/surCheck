@@ -15,6 +15,8 @@ from ..engine.reputation import (
     mask_url,
 )
 
+from ..services.supabase_db import supabase_db
+
 router = APIRouter(prefix="/reports", tags=["Signalement Communautaire"])
 
 IN_MEMORY_REPORTS = []
@@ -35,13 +37,15 @@ async def submit_report(request: CreateReportRequest):
         target_hash = hash_phone_number(normalized)
         target_masked = mask_phone_number(normalized)
     elif request.report_type == ReportType.URL:
-        target_hash = hash_phone_number(request.target)  # Indexation hash
+        target_hash = hash_phone_number(request.target)
         target_masked = mask_url(request.target)
     else:
         target_hash = hash_phone_number(request.target[:50])
         target_masked = "Extrait de message masqué"
 
     report_id = str(uuid.uuid4())
+    now = datetime.now()
+
     report_entry = {
         "id": report_id,
         "target_masked": target_masked,
@@ -51,9 +55,12 @@ async def submit_report(request: CreateReportRequest):
         "description": request.description,
         "evidence_url": request.evidence_url,
         "status": ReportStatus.NOUVEAU,
-        "created_at": datetime.utcnow(),
+        "created_at": now,
     }
     IN_MEMORY_REPORTS.append(report_entry)
+
+    # Persistance asynchrone Supabase
+    await supabase_db.save_report(request)
 
     return ReportResponse(
         id=report_id,
@@ -62,7 +69,7 @@ async def submit_report(request: CreateReportRequest):
         category=request.category,
         status=ReportStatus.NOUVEAU,
         message="Signalement enregistré. Il sera examiné par l'équipe de modération.",
-        created_at=report_entry["created_at"],
+        created_at=now,
     )
 
 

@@ -2,7 +2,7 @@
 Conformes au Cahier des Charges et aux règles rédactionnelles.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import List, Optional
 from pydantic import BaseModel, Field
@@ -81,7 +81,7 @@ class AnalysisResult(BaseModel):
     signals: List[DetectedSignal] = Field(default_factory=list, description="Liste des signaux détectés")
     recommendations: List[str] = Field(default_factory=list, description="Actions concrètes recommandées")
     engine_version: str = Field(..., description="Version du moteur d'analyse pour traçabilité")
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 # --- SIGNALEMENT COMMUNAUTAIRE ---

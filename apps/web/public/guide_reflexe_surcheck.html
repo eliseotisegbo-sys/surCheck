@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SûrCheck AI — Guide Réflexe Anti-Arnaque & Attestation d'Accès</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    /* RESET & FEUILLES DE STYLE POUR IMPRESSION HAUTE-FIDÉLITÉ A4 */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --primary: #1E3A8A;        /* Bleu marine républicain profond */
+      --primary-dark: #0F172A;   /* Ardoise sombre */
+      --primary-light: #EFF6FF;  /* Bleu glacier très doux */
+      --text-main: #1E293B;      /* Texte principal ardoise */
+      --text-muted: #64748B;     /* Texte secondaire */
+      --border-color: #CBD5E1;   /* Bordures nettes */
+      --accent-green: #008751;   /* Vert drapeau Bénin */
+      --accent-yellow: #FCD116;  /* Jaune drapeau Bénin */
+      --accent-red: #E8112D;     /* Rouge drapeau Bénin */
+      --danger-bg: #FEF2F2;
+      --danger-border: #FCA5A5;
+      --danger-text: #991B1B;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      color: var(--text-main);
+      background-color: #E2E8F0;
+      line-height: 1.45;
+      font-size: 13px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* BARRE D'ACTIONS WEB (Masquée à l'impression) */
+    .web-action-bar {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: #0F172A;
+      color: #FFFFFF;
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    .web-action-bar .brand {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 700;
+      font-size: 16px;
+      letter-spacing: -0.5px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .web-action-bar .brand-badge {
+      background: #2563EB;
+      color: #FFF;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+    .web-action-bar .buttons {
+      display: flex;
+      gap: 12px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 18px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s ease;
+      text-decoration: none;
+    }
+    .btn-print {
+      background: #2563EB;
+      color: #FFFFFF;
+    }
+    .btn-print:hover {
+      background: #1D4ED8;
+    }
+    .btn-return {
+      background: rgba(255, 255, 255, 0.1);
+      color: #E2E8F0;
+    }
+    .btn-return:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    /* FEUILLE A4 CONTENEUR */
+    .a4-container {
+      width: 210mm;
+      min-height: 297mm;
+      margin: 20px auto;
+      background: #FFFFFF;
+      padding: 18mm 20mm 15mm 20mm;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    /* LISERÉ TRICOLORE BÉNIN EN HAUT */
+    .tricolor-stripe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 5px;
+      display: flex;
+    }
+    .tricolor-stripe .g { flex: 1; background: var(--accent-green); }
+    .tricolor-stripe .y { flex: 1; background: var(--accent-yellow); }
+    .tricolor-stripe .r { flex: 1; background: var(--accent-red); }
+
+    /* EN-TÊTE OFFICIEL */
+    header {
+      border-bottom: 2px solid #E2E8F0;
+      padding-bottom: 14px;
+      margin-bottom: 16px;
+    }
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 8px;
+    }
+    .header-logo-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .shield-emblem {
+      width: 44px;
+      height: 44px;
+      background: var(--primary);
+      color: #FFFFFF;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 800;
+      font-size: 22px;
+      box-shadow: 0 2px 6px rgba(30, 58, 138, 0.25);
+    }
+    .title-block h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--primary-dark);
+      letter-spacing: -0.5px;
+      text-transform: uppercase;
+    }
+    .title-block p {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--primary);
+      letter-spacing: 0.2px;
+      text-transform: uppercase;
+      margin-top: 1px;
+    }
+    .header-badge {
+      text-align: right;
+    }
+    .official-badge {
+      display: inline-block;
+      border: 1px solid var(--border-color);
+      background: #F8FAFC;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text-main);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .badge-ref {
+      font-size: 9px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* CONFIRMATION DE SOUSCRIPTION / ATTESTATION */
+    .attestation-card {
+      background: #F0FDF4;
+      border: 1px solid #BBF7D0;
+      border-left: 4px solid var(--accent-green);
+      border-radius: 6px;
+      padding: 10px 14px;
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .attestation-text h2 {
+      font-size: 13px;
+      font-weight: 700;
+      color: #166534;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .attestation-text p {
+      font-size: 11px;
+      color: #15803D;
+      margin-top: 2px;
+    }
+    .attestation-status {
+      text-align: right;
+      font-size: 10.5px;
+      font-weight: 700;
+      color: #166534;
+      background: #DCFCE7;
+      padding: 4px 10px;
+      border-radius: 12px;
+      border: 1px solid #86EFAC;
+    }
+
+    /* ENCART D'URGENCE (LE PLUS VISIBLE DU DOCUMENT) */
+    .emergency-box {
+      background: #FEF2F2;
+      border: 2px solid #DC2626;
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-bottom: 16px;
+    }
+    .emergency-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .emergency-title h2 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 13px;
+      font-weight: 800;
+      color: #991B1B;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .emergency-title span {
+      font-size: 10px;
+      font-weight: 700;
+      color: #991B1B;
+      background: #FEE2E2;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+    .emergency-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+    .emergency-item {
+      background: #FFFFFF;
+      border: 1px solid #FECACA;
+      border-radius: 6px;
+      padding: 8px 10px;
+      text-align: center;
+    }
+    .emergency-item .op-name {
+      font-size: 10.5px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+    .emergency-item .op-number {
+      font-family: 'Outfit', sans-serif;
+      font-size: 18px;
+      font-weight: 800;
+      color: #DC2626;
+      letter-spacing: 0.5px;
+      margin: 2px 0;
+    }
+    .emergency-item .op-desc {
+      font-size: 9.5px;
+      color: var(--text-main);
+      font-weight: 500;
+    }
+
+    /* SECTION DES 5 RÈGLES D'OR */
+    .rules-section {
+      margin-bottom: 16px;
+    }
+    .section-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-title::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: #CBD5E1;
+    }
+    .rules-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .rule-card {
+      background: #F8FAFC;
+      border: 1px solid #E2E8F0;
+      border-radius: 6px;
+      padding: 8px 12px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+    .rule-number {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #FFFFFF;
+      font-size: 11px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      shrink: 0;
+      margin-top: 1px;
+    }
+    .rule-content h3 {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--primary-dark);
+      margin-bottom: 2px;
+    }
+    .rule-content p {
+      font-size: 11px;
+      color: #334155;
+      line-height: 1.4;
+    }
+    .rule-content strong {
+      color: #0F172A;
+    }
+
+    /* SECTION COMMENT UTILISER VOS CRÉDITS */
+    .usage-section {
+      background: var(--primary-light);
+      border: 1px solid #BFDBFE;
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-bottom: 16px;
+    }
+    .usage-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 8px;
+    }
+    .usage-step {
+      background: #FFFFFF;
+      border: 1px solid #DBEAFE;
+      border-radius: 6px;
+      padding: 8px 10px;
+    }
+    .step-header {
+      font-size: 10px;
+      font-weight: 800;
+      color: #2563EB;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 2px;
+    }
+    .step-text {
+      font-size: 10.5px;
+      color: #1E293B;
+      line-height: 1.35;
+    }
+
+    /* PIED DE PAGE RÉPUBLICAIN & MENTIONS */
+    footer {
+      border-top: 1px solid #E2E8F0;
+      padding-top: 10px;
+      font-size: 10px;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    footer .legal {
+      max-width: 75%;
+      line-height: 1.35;
+    }
+    footer .authority {
+      text-align: right;
+      font-weight: 600;
+      color: var(--primary-dark);
+    }
+    footer .authority span {
+      display: block;
+      font-size: 9px;
+      color: var(--text-muted);
+      font-weight: 400;
+    }
+
+    /* GESTION D'IMPRESSION DIRECTE (Ctrl + P) */
+    @media print {
+      body {
+        background: #FFFFFF !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+      .web-action-bar {
+        display: none !important;
+      }
+      .a4-container {
+        margin: 0 !important;
+        width: 100% !important;
+        min-height: 297mm !important;
+        box-shadow: none !important;
+        padding: 10mm 15mm !important;
+      }
+      @page {
+        size: A4 portrait;
+        margin: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- BARRE D'ACTIONS WEB POUR LE TÉLÉCHARGEMENT/IMPRESSION DIRECTE -->
+  <div class="web-action-bar">
+    <div class="brand">
+      <span>SûrCheck AI</span>
+      <span class="brand-badge">Bénin</span>
+    </div>
+    <div class="buttons">
+      <a href="https://surcheck.bj" class="btn btn-return">Accéder à la plateforme</a>
+      <button class="btn btn-print" onclick="window.print()">
+        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+        Imprimer / Enregistrer en PDF (A4)
+      </button>
+    </div>
+  </div>
+
+  <!-- FEUILLE A4 OFFICIELLE -->
+  <div class="a4-container">
+    <div class="tricolor-stripe">
+      <div class="g"></div>
+      <div class="y"></div>
+      <div class="r"></div>
+    </div>
+
+    <div>
+      <!-- EN-TÊTE -->
+      <header>
+        <div class="header-top">
+          <div class="header-logo-group">
+            <div class="shield-emblem">S</div>
+            <div class="title-block">
+              <h1>SûrCheck AI — République du Bénin</h1>
+              <p>Plateforme de Vigilance Numérique & Prévention des Fraudes Financières</p>
+            </div>
+          </div>
+          <div class="header-badge">
+            <div class="official-badge">Guide Réflexe Citoyen</div>
+            <div class="badge-ref">Réf. SC-BJ/2026-PUB</div>
+          </div>
+        </div>
+      </header>
+
+      <!-- ATTESTATION D'ACHAT & CRÉDITS ACTIFS -->
+      <div class="attestation-card">
+        <div class="attestation-text">
+          <h2>
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            Attestation de souscription & Solde actif
+          </h2>
+          <p>Votre pack d'analyses complètes est crédité et immédiatement disponible sur votre compte SûrCheck.</p>
+        </div>
+        <div class="attestation-status">Crédits sans expiration</div>
+      </div>
+
+      <!-- ENCART D'URGENCE RÉPUBLICAIN -->
+      <section class="emergency-box">
+        <div class="emergency-title">
+          <h2>
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+            Numéros d'urgence & Opposition immédiate au Bénin
+          </h2>
+          <span>À conserver absolument</span>
+        </div>
+        <div class="emergency-grid">
+          <div class="emergency-item">
+            <div class="op-name">MTN Mobile Money</div>
+            <div class="op-number">111</div>
+            <div class="op-desc">Opposition & blocage compte (gratuit 24h/7)</div>
+          </div>
+          <div class="emergency-item">
+            <div class="op-name">Moov Money Bénin</div>
+            <div class="op-number">123</div>
+            <div class="op-desc">Assistance & litige transfert (gratuit)</div>
+          </div>
+          <div class="emergency-item">
+            <div class="op-name">Police / OCRC Cotonou</div>
+            <div class="op-number">21 30 08 62</div>
+            <div class="op-desc">Office Cybercriminalité & Commissariats</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- LES 5 RÈGLES D'OR -->
+      <section class="rules-section">
+        <h2 class="section-title">Les 5 Règles d'Or de la Sécurité Mobile Money au Bénin</h2>
+        <div class="rules-list">
+          
+          <div class="rule-card">
+            <div class="rule-number">1</div>
+            <div class="rule-content">
+              <h3>Fausse « erreur d'envoi » : Ne composez jamais de code sous la dictée</h3>
+              <p>Si un inconnu vous appelle affirmant s'être trompé de numéro et vous demande de taper un code (ex: <strong>*880#</strong> ou <strong>*400#</strong>) pour « annuler » : <strong>refusez catégoriquement</strong>. Il s'agit d'une tentative de validation de retrait forcé.</p>
+            </div>
+          </div>
+
+          <div class="rule-card">
+            <div class="rule-number">2</div>
+            <div class="rule-content">
+              <h3>Confidentialité absolue : Aucun agent ne vous demandera votre code secret</h3>
+              <p>Votre code secret à 4 chiffres est strictement personnel. <strong>Aucun agent officiel MTN, Moov, banquier ou analyste SûrCheck ne vous demandera jamais votre code secret</strong>, que ce soit par appel, SMS ou WhatsApp.</p>
+            </div>
+          </div>
+
+          <div class="rule-card">
+            <div class="rule-number">3</div>
+            <div class="rule-content">
+              <h3>Faux recrutements, bourses d'études et loteries en ligne</h3>
+              <p>Toute offre d'emploi, de bourse d'études ou de gain de loterie qui exige des « frais de dossier », « frais d'enregistrement » ou « kit de démarrage » payables par Mobile Money est <strong>une arnaque avérée dans 99,8% des cas</strong>.</p>
+            </div>
+          </div>
+
+          <div class="rule-card">
+            <div class="rule-number">4</div>
+            <div class="rule-content">
+              <h3>Le réflexe systématique : Vérifier avant d'envoyer de l'argent</h3>
+              <p>Avant d'effectuer un paiement à un marchand en ligne inconnu ou de cliquer sur un lien reçu par SMS/WhatsApp, copiez le numéro ou l'adresse et collez-les sur <strong>surcheck.bj</strong> pour obtenir une analyse du niveau de risque et de réputation.</p>
+            </div>
+          </div>
+
+          <div class="rule-card">
+            <div class="rule-number">5</div>
+            <div class="rule-content">
+              <h3>Chantage, intimidation ou menaces : Ne cédez jamais</h3>
+              <p>En cas de tentative de chantage ou menace de publication de photos intimes : <strong>ne payez aucun franc</strong>. Coupez tout contact, faites des captures d'écran des échanges et rendez-vous sans délai à l'<strong>OCRC à Agontikon (Cotonou)</strong> ou au commissariat le plus proche.</p>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- COMMENT UTILISER VOS CRÉDITS -->
+      <section class="usage-section">
+        <h2 class="section-title" style="margin-bottom: 4px;">Comment utiliser vos crédits sur SûrCheck</h2>
+        <div class="usage-grid">
+          <div class="usage-step">
+            <div class="step-header">Étape 1</div>
+            <div class="step-text">Rendez-vous sur <strong>https://surcheck.bj</strong> depuis votre téléphone ou ordinateur.</div>
+          </div>
+          <div class="usage-step">
+            <div class="step-header">Étape 2</div>
+            <div class="step-text">Connectez-vous à votre compte. Votre solde de crédits s'affiche en haut de la page.</div>
+          </div>
+          <div class="usage-step">
+            <div class="step-header">Étape 3</div>
+            <div class="step-text">Soumettez un message, lien ou numéro : l'analyse complète détaillée est débloquée en 1 clic.</div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- PIED DE PAGE OFFICIEL -->
+    <footer>
+      <div class="legal">
+        <strong>Avis d'information citoyenne :</strong> Ce document est édité par l'initiative SûrCheck AI pour la sensibilisation et la sécurité numérique des citoyens au Bénin. Il constitue un outil réflexe d'alerte et ne se substitue pas à une plainte formelle auprès de la Police Républicaine.
+      </div>
+      <div class="authority">
+        www.surcheck.bj
+        <span>Cotonou, République du Bénin</span>
+      </div>
+    </footer>
+  </div>
+
+</body>
+</html>

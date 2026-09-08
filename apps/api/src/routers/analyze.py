@@ -13,11 +13,55 @@ from ..schemas import (
 from ..engine.scorer import calculate_risk
 from ..engine.normalizer import normalize_url
 
+from ..services.supabase_db import supabase_db
+from ..engine.extractor import extract_phone_numbers, extract_urls
+from ..schemas import DetectedSignal
+
 router = APIRouter(prefix="/analyze", tags=["Analyse de Risque"])
 
-# Stockage temporaire en mémoire pour tests et démo avant connexion Supabase
+# Cache local rapide en mémoire (fallback)
 IN_MEMORY_ANALYSES = {}
 IN_MEMORY_FEEDBACK = []
+
+
+async def _enrich_with_reputation(result: AnalysisResult, text: str):
+    """Enrichit les signaux d'analyse avec la réputation communautaire réelle de Supabase."""
+    phones = extract_phone_numbers(text)
+    for p in phones:
+        rep_count, rep_status = await supabase_db.check_phone_reputation(p)
+        if rep_count > 0:
+            result.signals.append(
+                DetectedSignal(
+                    code="SIG_COMMUNITY_REPORT_PHONE",
+                    title="Numéro déjà signalé par la communauté",
+                    category="Signalement communautaire",
+                    weight=min(40, 20 + rep_count * 5),
+                    evidence=f"{p} (signalé {rep_count} fois)",
+                    advice="Ce numéro a fait l'objet de signalements récents. Redoublez de vigilance.",
+                )
+            )
+            result.risk_score = min(96, result.risk_score + 20)
+            if result.risk_score >= 70:
+                result.risk_level = RiskLevel.ELEVE
+                result.headline = "Risque potentiel élevé détecté"
+
+    urls = extract_urls(text)
+    for u in urls:
+        rep_count, phishing_match, rep_status = await supabase_db.check_url_reputation(u["url"])
+        if rep_count > 0 or phishing_match:
+            result.signals.append(
+                DetectedSignal(
+                    code="SIG_COMMUNITY_REPORT_URL",
+                    title="Lien ou domaine déjà signalé comme suspect",
+                    category="Lien malveillant",
+                    weight=45,
+                    evidence=u["url"][:40],
+                    advice="N'ouvrez pas ce lien et ne renseignez aucune coordonnée bancaire ou personnelle.",
+                )
+            )
+            result.risk_score = max(result.risk_score, 75)
+            result.risk_level = "eleve"
+            result.headline = "Risque potentiel élevé détecté"
 
 
 @router.post("/text", response_model=AnalysisResult, status_code=status.HTTP_200_OK)
@@ -32,7 +76,12 @@ async def analyze_text(request: AnalyzeTextRequest):
         )
 
     result = calculate_risk(request.content, content_type=ContentType.TEXT)
+    await _enrich_with_reputation(result, request.content)
+
+    # Persistance Supabase (asynchrone) + Cache mémoire
     IN_MEMORY_ANALYSES[result.id] = result
+    await supabase_db.save_analysis(result, request.content, user_id=request.user_id)
+
     return result
 
 
@@ -43,7 +92,11 @@ async def analyze_url(request: AnalyzeUrlRequest):
     """
     normalized = normalize_url(request.url)
     result = calculate_risk(normalized, content_type=ContentType.URL)
+    await _enrich_with_reputation(result, request.url)
+
     IN_MEMORY_ANALYSES[result.id] = result
+    await supabase_db.save_analysis(result, request.url, user_id=request.user_id)
+
     return result
 
 
@@ -68,23 +121,29 @@ async def analyze_image(file: bytes = None):
         )
 
     result = calculate_risk(extracted_text, content_type=ContentType.IMAGE)
+    await _enrich_with_reputation(result, extracted_text)
+
     IN_MEMORY_ANALYSES[result.id] = result
+    await supabase_db.save_analysis(result, extracted_text)
+
     return result
 
 
 @router.get("/{analysis_id}", response_model=AnalysisResult)
 async def get_analysis(analysis_id: str):
     """Consulte une analyse passée par son identifiant unique."""
-    if analysis_id not in IN_MEMORY_ANALYSES:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Analyse introuvable ou expirée."
-        )
-    return IN_MEMORY_ANALYSES[analysis_id]
+    if analysis_id in IN_MEMORY_ANALYSES:
+        return IN_MEMORY_ANALYSES[analysis_id]
+
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail="Analyse introuvable ou expirée."
+    )
 
 
 @router.post("/feedback", status_code=status.HTTP_201_CREATED)
 async def submit_feedback(feedback: AnalysisFeedbackRequest):
     """Enregistre le retour utilisateur sur l'utilité de l'évaluation."""
-    IN_MEMORY_FEEDBACK.append(feedback.dict())
+    IN_MEMORY_FEEDBACK.append(feedback.model_dump())
+    await supabase_db.save_feedback(feedback)
     return {"status": "success", "message": "Merci pour votre retour."}

@@ -33,10 +33,46 @@ class Settings(BaseSettings):
         "DATABASE_URL",
         "postgresql://postgres:postgres@localhost:5432/surcheck_dev",
     )
+    SUPABASE_URL: str = os.getenv(
+        "SUPABASE_URL",
+        "https://lhxbzflectkuysaklvji.supabase.co",
+    )
+    SUPABASE_ANON_KEY: str = os.getenv(
+        "SUPABASE_ANON_KEY",
+        "sb_publishable_59E__jIIWr3HRG3XkV4Rcg_U0KZdYNH",
+    )
+    SUPABASE_SERVICE_ROLE_KEY: str = os.getenv(
+        "SUPABASE_SERVICE_ROLE_KEY",
+        "",
+    )
 
-    class Config:
-        env_file = ".env"
-        extra = "allow"
+    # Chariow API (Checkout & Pulses/Webhooks)
+    CHARIOW_API_KEY: str = os.getenv(
+        "CHARIOW_API_KEY", "sk_o0xs5yj1_6ed3b1413ce916e7835c6d884b6548f7"
+    )
+    CHARIOW_BASE_URL: str = os.getenv(
+        "CHARIOW_BASE_URL", "https://api.chariow.com/v1"
+    )
+    CHARIOW_WEBHOOK_SECRET: str = os.getenv("CHARIOW_WEBHOOK_SECRET", "")
+    CHARIOW_PRODUCT_PACK_1: str = os.getenv("CHARIOW_PRODUCT_PACK_1", "prd_pack_1")
+    CHARIOW_PRODUCT_PACK_5: str = os.getenv("CHARIOW_PRODUCT_PACK_5", "prd_pack_5")
+    CHARIOW_PRODUCT_PACK_10: str = os.getenv("CHARIOW_PRODUCT_PACK_10", "prd_pack_10")
+    CHARIOW_PRODUCT_PACK_25: str = os.getenv("CHARIOW_PRODUCT_PACK_25", "prd_pack_25")
+
+    # Tarifs officiels SûrCheck réaménagés (minimum Chariow : 565 FCFA)
+    CREDIT_PACK_1_FCFA: int = 600      # Analyse unique = 600 FCFA
+    CREDIT_PACK_5_FCFA: int = 1500     # 5 analyses = 1 500 FCFA (300 F / unité)
+    CREDIT_PACK_10_FCFA: int = 2500    # 10 analyses = 2 500 FCFA (250 F / unité) - Populaire
+    CREDIT_PACK_25_FCFA: int = 5000    # 25 analyses = 5 000 FCFA (200 F / unité)
+
+
+    # URL publique pour redirection post-checkout
+    APP_URL: str = os.getenv("APP_URL", "http://localhost:3000")
+
+    model_config = {
+        "env_file": ("../../.env", "../.env", ".env"),
+        "extra": "allow",
+    }
 
 
 settings = Settings()

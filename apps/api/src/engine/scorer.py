@@ -49,20 +49,23 @@ def calculate_risk(text: str, content_type: ContentType = ContentType.TEXT) -> A
                 ))
                 rule_score += 25
 
-    # 5. Agrégation pondérée (Règles déterministes = 65%, Modèle ML = 35%)
+    # 5. Agrégation pondérée (Règles déterministes = 70%, Modèle ML = 30%)
     if rule_score > 0:
         raw_score = int((rule_score * 0.70) + (ml_score * 0.30))
     else:
-        raw_score = int(ml_score * 0.85)
+        if ml_category == "Légitime":
+            raw_score = min(ml_score, 18)
+        else:
+            raw_score = int(ml_score * 0.85)
 
-    # Si une règle critique de code secret ou fausse transaction est déclenchée, plancher à 70
+    # Si une règle critique de code secret ou fausse transaction est déclenchée, plancher à 75
     critical_codes = {"RULE_OTP_PIN", "RULE_FALSE_TRANSFER_REVERSAL"}
     if any(s.code in critical_codes for s in signals):
         raw_score = max(raw_score, 75)
 
     # Bornage strict entre 0 et 100 (sans jamais afficher 0 absolu ou 100 absolu pour éviter l'illusion de certitude absolue)
-    if len(signals) == 0 and ml_score <= 20:
-        final_score = min(max(raw_score, 5), 18)
+    if len(signals) == 0 and (ml_category == "Légitime" or ml_score <= 25):
+        final_score = min(max(raw_score, 5), 22)
     else:
         final_score = min(max(raw_score, 10), 96)
 
