@@ -29,6 +29,7 @@ import {
   unlockAnalysis,
   checkAnalysisUnlockStatus,
   fetchCreditsBalance,
+  submitReport as apiSubmitReport,
 } from "@/lib/api";
 import { AnalysisResult, RiskLevel } from "@/lib/engine";
 import { getCachedUser, clearSession, updateCachedQuota, UserProfile } from "@/lib/auth";
@@ -219,16 +220,17 @@ export default function HomePage() {
 
     try {
       const isPhone = !reportTarget.startsWith("http");
-      await fetch("/api/v1/reports", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          report_type: isPhone ? "phone" : "url",
-          target: reportTarget.trim(),
-          category: reportCategory,
-          description: reportDetails.trim() || "Signalement communautaire sans commentaire additionnel",
-        }),
+      // Utiliser la fonction apiSubmitReport de @/lib/api pour ajouter l'authentification JWT
+      const success = await apiSubmitReport({
+        report_type: isPhone ? "phone" : "url",
+        target: reportTarget.trim(),
+        category: reportCategory,
+        description: reportDetails.trim() || "Signalement communautaire sans commentaire additionnel",
       });
+      
+      if (!success) {
+        console.warn("Échec du signalement");
+      }
     } catch (err) {
       console.warn("Erreur réseau signalement:", err);
     }
