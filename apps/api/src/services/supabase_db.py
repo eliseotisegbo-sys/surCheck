@@ -15,6 +15,8 @@ from ..engine.reputation import (
     hash_phone_number,
     mask_phone_number,
     mask_url,
+    hash_url,
+    extract_country_code,
 )
 from ..engine.normalizer import normalize_url
 
@@ -116,7 +118,7 @@ class SupabaseService:
                 target_masked = mask_phone_number(norm_target)
             elif report_data.report_type.value == "url":
                 norm_target = normalize_url(target_str)
-                target_hash = hashlib.sha256(norm_target.encode("utf-8")).hexdigest()
+                target_hash = hash_url(norm_target)
                 target_masked = mask_url(norm_target)
             else:
                 norm_target = target_str[:250]
@@ -146,7 +148,7 @@ class SupabaseService:
 
                     # Mise à jour ou insertion dans reported_numbers
                     if report_data.report_type.value == "phone":
-                        await self._increment_reported_number(client, target_hash)
+                        await self._increment_reported_number(client, target_hash, norm_target)
                     elif report_data.report_type.value == "url":
                         await self._increment_reported_url(client, norm_target, target_hash)
 
@@ -159,9 +161,12 @@ class SupabaseService:
             logger.error(f"Exception lors de la sauvegarde du signalement: {e}")
             return None
 
-    async def _increment_reported_number(self, client: httpx.AsyncClient, phone_hash: str):
+    async def _increment_reported_number(self, client: httpx.AsyncClient, phone_hash: str, normalized_phone: str = ""):
         """Incrémente le compteur de signalement d'un numéro haché."""
         try:
+            # Extraire le code pays réel du numéro normalisé
+            country_code = extract_country_code(normalized_phone) if normalized_phone else "+229"
+            
             # Vérifier si le numéro existe déjà
             check_res = await client.get(
                 f"{self.url}/rest/v1/reported_numbers?phone_hash=eq.{phone_hash}&select=*",
@@ -182,7 +187,7 @@ class SupabaseService:
                     headers=self._get_headers(),
                     json={
                         "phone_hash": phone_hash,
-                        "country_code": "+229",
+                        "country_code": country_code,
                         "report_count": 1,
                         "confirmed_count": 0,
                         "status": "nouveau",
@@ -251,7 +256,7 @@ class SupabaseService:
         """
         try:
             norm_url = normalize_url(url)
-            domain_hash = hashlib.sha256(norm_url.encode("utf-8")).hexdigest()
+            domain_hash = hash_url(norm_url)
 
             async with httpx.AsyncClient(timeout=3.0) as client:
                 res = await client.get(

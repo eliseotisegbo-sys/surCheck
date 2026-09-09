@@ -13,7 +13,9 @@ from ..engine.reputation import (
     hash_phone_number,
     mask_phone_number,
     mask_url,
+    hash_url,
 )
+from ..engine.normalizer import normalize_url
 
 from ..services.supabase_db import supabase_db
 
@@ -37,8 +39,9 @@ async def submit_report(request: CreateReportRequest):
         target_hash = hash_phone_number(normalized)
         target_masked = mask_phone_number(normalized)
     elif request.report_type == ReportType.URL:
-        target_hash = hash_phone_number(request.target)
-        target_masked = mask_url(request.target)
+        normalized = normalize_url(request.target)
+        target_hash = hash_url(normalized)
+        target_masked = mask_url(normalized)
     else:
         target_hash = hash_phone_number(request.target[:50])
         target_masked = "Extrait de message masqué"

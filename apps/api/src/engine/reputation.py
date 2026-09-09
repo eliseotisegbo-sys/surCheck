@@ -59,3 +59,27 @@ def mask_url(url: str) -> str:
     if len(url) <= 15:
         return url
     return url[:12] + "•••"
+
+
+def hash_url(normalized_url: str) -> str:
+    """Hache une URL normalisée avec SHA-256 pour indexation cohérente.
+    Utilise la normalisation depuis engine/normalizer.py.
+    """
+    return hashlib.sha256(normalized_url.encode("utf-8")).hexdigest()
+
+
+def extract_country_code(normalized_phone: str) -> str:
+    """Extrait le code pays d'un numéro normalisé E.164.
+    Exemples: '+229' pour Bénin, '+228' pour Togo.
+    Fallback '+229' si le numéro ne commence pas par '+'.
+    """
+    if not normalized_phone.startswith("+"):
+        return "+229"  # Fallback par défaut Bénin
+    
+    # Extraire les 4 premiers caractères max (ex: +229)
+    # Les codes pays peuvent avoir 1-3 chiffres
+    match = re.match(r'(\+\d{1,3})', normalized_phone)
+    if match:
+        return match.group(1)
+    
+    return "+229"  # Fallback sécurisé
