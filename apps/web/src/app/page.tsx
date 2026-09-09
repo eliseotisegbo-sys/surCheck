@@ -31,6 +31,7 @@ import {
 } from "@/lib/api";
 import { AnalysisResult, RiskLevel } from "@/lib/engine";
 import { getCachedUser, clearSession, updateCachedQuota, UserProfile } from "@/lib/auth";
+import { OPERATOR_EMERGENCY_CONTACTS } from "@/lib/constants";
 
 export default function HomePage() {
   const [activeTab, setActiveTab] = useState<"text" | "url" | "image">("text");
@@ -647,7 +648,7 @@ export default function HomePage() {
                       <span className="w-1.5 h-1.5 rounded-full bg-red-600 mt-1.5 shrink-0" />
                       <div>
                         <strong className="text-red-950 dark:text-red-200 block mb-0.5">Procédure d'urgence Mobile Money (Bénin) :</strong>
-                        <span>Si vous avez déjà initié une validation, composez immédiatement le <strong>111</strong> (Service Client MTN) ou le <strong>123</strong> (Service Client Moov Money). Demandez la suspension immédiate du portefeuille destinataire et l'ouverture d'un ticket de litige d'urgence.</span>
+                        <span>Si vous avez déjà initié une validation, composez immédiatement le <strong>{OPERATOR_EMERGENCY_CONTACTS.MTN.number}</strong> (Service Client {OPERATOR_EMERGENCY_CONTACTS.MTN.name}) ou le <strong>{OPERATOR_EMERGENCY_CONTACTS.MOOV.number}</strong> (Service Client {OPERATOR_EMERGENCY_CONTACTS.MOOV.name}). Demandez la suspension immédiate du portefeuille destinataire et l'ouverture d'un ticket de litige d'urgence.</span>
                       </div>
                     </li>
                     <li className="flex items-start gap-2.5 text-xs sm:text-sm text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-950/50 p-3 rounded border border-slate-200 dark:border-slate-800">
@@ -688,7 +689,7 @@ export default function HomePage() {
                 <ul className="space-y-1.5 text-xs sm:text-sm text-slate-700 dark:text-slate-300">
                   <li className="flex items-start gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-blue-600 mt-2 shrink-0" />
-                    <span><strong>Mesures d'urgence :</strong> Contacts et démarches rapides d'opposition auprès des opérateurs (MTN 111 & Moov 123 Bénin).</span>
+                    <span><strong>Mesures d'urgence :</strong> Contacts et démarches rapides d'opposition auprès des opérateurs (MTN {OPERATOR_EMERGENCY_CONTACTS.MTN.number} & Moov {OPERATOR_EMERGENCY_CONTACTS.MOOV.number} Bénin).</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-blue-600 mt-2 shrink-0" />
@@ -1034,7 +1035,7 @@ export default function HomePage() {
               SûrCheck AI • Conçu pour le Bénin et l'Afrique Francophone
             </p>
             <p className="text-[11px] text-slate-400 mt-0.5">
-              Outil citoyen d'aide à la décision. Ne remplace pas les services officiels d'opérateurs (MTN: 111, Moov: 100).
+              Outil citoyen d'aide à la décision. Ne remplace pas les services officiels d'opérateurs (MTN: {OPERATOR_EMERGENCY_CONTACTS.MTN.number}, Moov: {OPERATOR_EMERGENCY_CONTACTS.MOOV.number}).
             </p>
           </div>
           <div className="text-[11px] text-slate-400">
