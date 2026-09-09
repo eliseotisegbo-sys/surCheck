@@ -60,6 +60,52 @@ export async function checkContent(
   }
 }
 
+/** Analyse une capture d'écran via OCR backend. */
+export async function checkImage(imageFile: File): Promise<AnalysisResult> {
+  try {
+    const formData = new FormData();
+    formData.append("file", imageFile);
+
+    const token = getToken();
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
+    const res = await fetch(`${API_BASE_URL}/analyze/image`, {
+      method: "POST",
+      headers,
+      body: formData,
+    });
+
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({}));
+      throw new Error(error.detail || `API returned ${res.status}`);
+    }
+
+    const data = await res.json();
+    return {
+      id: data.id,
+      risk_score: data.risk_score,
+      risk_level: data.risk_level,
+      category: data.category,
+      confidence_level: data.confidence_level,
+      headline: data.headline,
+      summary: data.summary,
+      signals: data.signals,
+      recommendations: data.recommendations,
+      engine_version: data.engine_version,
+      analyzed_at: data.created_at || new Date().toISOString(),
+    };
+  } catch (err: any) {
+    console.warn("Erreur OCR backend:", err);
+    // Fallback : indiquer clairement que l'OCR a échoué
+    throw new Error(
+      err.message || "Impossible d'extraire le texte de l'image. Veuillez saisir le texte manuellement."
+    );
+  }
+}
+
 /** Envoie un signalement communautaire. */
 export async function submitReport(payload: {
   report_type: "phone" | "url" | "sms" | "email";

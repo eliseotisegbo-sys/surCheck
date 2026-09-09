@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import {
   checkContent,
+  checkImage,
   unlockAnalysis,
   checkAnalysisUnlockStatus,
   fetchCreditsBalance,
@@ -132,11 +133,17 @@ export default function HomePage() {
     setFeedbackSent(null);
 
     try {
-      let contentToAnalyze = inputContent;
-      if (activeTab === "image" && !contentToAnalyze.trim() && selectedImage) {
-        contentToAnalyze = `Capture d'écran importée : ${selectedImage.name}. Vérification des motifs suspects.`;
+      let data: AnalysisResult;
+      
+      if (activeTab === "image" && selectedImage) {
+        // Appel réel de l'API d'analyse d'image avec OCR
+        data = await checkImage(selectedImage);
+      } else {
+        // Analyse texte ou URL classique
+        const contentToAnalyze = inputContent;
+        data = await checkContent(contentToAnalyze, activeTab === "url" ? "url" : "text");
       }
-      const data = await checkContent(contentToAnalyze, activeTab === "url" ? "url" : "text");
+      
       setResult(data);
       saveToHistory(data);
 
@@ -145,8 +152,12 @@ export default function HomePage() {
           setIsUnlocked(unlocked);
         });
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      // Afficher l'erreur à l'utilisateur si c'est une erreur OCR
+      if (activeTab === "image" && err.message) {
+        alert(err.message);
+      }
     } finally {
       setIsLoading(false);
     }
