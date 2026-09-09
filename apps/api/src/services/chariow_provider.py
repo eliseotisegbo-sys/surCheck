@@ -53,7 +53,7 @@ class ChariowPaymentProvider(PaymentProvider):
                 "number": phone_number.strip().replace(" ", "").replace("+", ""),
                 "country_code": country_code.upper() or "BJ",
             },
-            "custom_metadata": {k: str(v)[:255] for k, v in custom_metadata.items()[:10]},
+            "custom_metadata": {k: str(v)[:255] for k, v in list(custom_metadata.items())[:10]},
         }
 
         if redirect_url:

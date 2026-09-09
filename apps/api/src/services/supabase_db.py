@@ -5,6 +5,7 @@ Conforme aux règles de résilience, d'anonymisation et d'audit.
 
 import hashlib
 import logging
+from datetime import datetime
 from typing import Optional, Dict, Any, List, Tuple
 import httpx
 from ..config import settings

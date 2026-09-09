@@ -2,13 +2,14 @@
 Conforme aux règles de neutralité et au versioning du moteur.
 """
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, File, UploadFile
 from ..schemas import (
     AnalyzeTextRequest,
     AnalyzeUrlRequest,
     AnalysisResult,
     ContentType,
     AnalysisFeedbackRequest,
+    RiskLevel,
 )
 from ..engine.scorer import calculate_risk
 from ..engine.normalizer import normalize_url
@@ -101,7 +102,7 @@ async def analyze_url(request: AnalyzeUrlRequest):
 
 
 @router.post("/image", response_model=AnalysisResult, status_code=status.HTTP_200_OK)
-async def analyze_image(file: bytes = None):
+async def analyze_image(file: UploadFile = File(...)):
     """Analyse une capture d'écran de message WhatsApp ou SMS.
     Extrait le texte via OCR éphémère puis exécute le moteur de risque.
     """
@@ -113,7 +114,11 @@ async def analyze_image(file: bytes = None):
             detail="Fichier image requis."
         )
 
-    extracted_text, success = extract_text_from_image(file, "image/jpeg")
+    # Lire le contenu du fichier uploadé
+    image_bytes = await file.read()
+    content_type = file.content_type or "image/jpeg"
+
+    extracted_text, success = extract_text_from_image(image_bytes, content_type)
     if not success or not extracted_text:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
