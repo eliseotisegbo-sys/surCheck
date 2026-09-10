@@ -29,12 +29,12 @@ def strip_accents(text: str) -> str:
     return "".join([c for c in nfkd_form if not unicodedata.combining(c)])
 
 
-def normalize_text(text: str, apply_leet: bool = False) -> str:
+def normalize_text(text: str, apply_leet: bool = True) -> str:
     """Normalise une chaîne de caractères :
     - Mise en minuscules
     - Nettoyage des espaces multiples
     - Suppression des accents
-    - Substitution leetspeak optionnelle pour la détection de mots-clés masqués
+    - Substitution leetspeak activée par défaut pour contrer l'obfuscation
     """
     if not text:
         return ""

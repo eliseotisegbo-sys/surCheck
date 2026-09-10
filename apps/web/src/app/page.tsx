@@ -36,7 +36,7 @@ import { getCachedUser, clearSession, updateCachedQuota, UserProfile } from "@/l
 import { OPERATOR_EMERGENCY_CONTACTS } from "@/lib/constants";
 
 export default function HomePage() {
-  const [activeTab, setActiveTab] = useState<"text" | "url" | "image">("text");
+  const [activeTab, setActiveTab] = useState<"text" | "url">("text");
   const [inputContent, setInputContent] = useState("");
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -124,8 +124,7 @@ export default function HomePage() {
 
   const handleAnalyze = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (activeTab !== "image" && !inputContent.trim()) return;
-    if (activeTab === "image" && !selectedImage && !inputContent.trim()) return;
+    if (!inputContent.trim()) return;
 
     setIsLoading(true);
     setResult(null);
@@ -136,14 +135,9 @@ export default function HomePage() {
     try {
       let data: AnalysisResult;
       
-      if (activeTab === "image" && selectedImage) {
-        // Appel réel de l'API d'analyse d'image avec OCR
-        data = await checkImage(selectedImage);
-      } else {
-        // Analyse texte ou URL classique
-        const contentToAnalyze = inputContent;
-        data = await checkContent(contentToAnalyze, activeTab === "url" ? "url" : "text");
-      }
+      // Analyse texte ou URL uniquement (images désactivées temporairement)
+      const contentToAnalyze = inputContent;
+      data = await checkContent(contentToAnalyze, activeTab === "url" ? "url" : "text");
       
       setResult(data);
       saveToHistory(data);
@@ -155,10 +149,7 @@ export default function HomePage() {
       }
     } catch (err: any) {
       console.error(err);
-      // Afficher l'erreur à l'utilisateur si c'est une erreur OCR
-      if (activeTab === "image" && err.message) {
-        alert(err.message);
-      }
+      alert("Erreur lors de l'analyse. Veuillez réessayer.");
     } finally {
       setIsLoading(false);
     }
@@ -355,6 +346,7 @@ export default function HomePage() {
             >
               Lien ou URL
             </button>
+            {/* Onglet Capture d'écran temporairement désactivé
             <button
               type="button"
               onClick={() => {
@@ -369,6 +361,7 @@ export default function HomePage() {
             >
               Capture d'écran
             </button>
+            */}
           </div>
 
           <form onSubmit={handleAnalyze} className="mt-4 space-y-3">

@@ -20,28 +20,63 @@ TRAINING_DATA = [
     ("Moov Money: Votre compte est temporairement restreint. Cliquez ici pour debloquer votre solde et entrez votre code PIN.", "Mobile Money"),
     ("Votre compte MTN Mobile Money a reçu 150000 FCFA. Pour confirmer la réception appelez vite le service client et validez le code reçu par SMS.", "Mobile Money"),
     ("Bonjour cher client Moov, nous effectuons la mise a jour de votre carte SIM. Envoyez votre code secret pour eviter la coupure.", "Mobile Money"),
+    ("Service MTN: Votre portefeuille sera suspendu dans 24h. Composez le *880# et entrez votre PIN pour éviter le blocage.", "Mobile Money"),
+    ("Transfert Moov Money de 75000 F effectué par erreur vers votre numéro. Remboursez immédiatement au 66123456 avant litige.", "Mobile Money"),
 
     # 2. Scénarios Faux Recrutement
     ("L'UNICEF recrute urgemment 50 agents de terrain a Cotonou et Parakou. Salaire: 350.000 FCFA. Envoyez 5.000 FCFA de frais de dossier par Momo.", "Faux emploi"),
     ("Offre d'emploi PNUD Benin. Postes disponibles immédiatement. Veuillez transferer la caution d'inscription de 10.000 F au tresorier avant l'entretien.", "Faux emploi"),
     ("Recrutement direct au Port Autonome de Cotonou. Tous diplômes acceptés. Envoyez vos frais de visite médicale au 66000000.", "Faux emploi"),
     ("Avis de recrutement ambassade de France. Inscription gratuite mais caution remboursable de 7.500 FCFA demandée.", "Faux emploi"),
+    ("La BCEAO recrute 100 agents. Dépôt de dossier: 15.000 FCFA. Salaire garanti 400.000 FCFA/mois. Contactez le DRH au 95000000.", "Faux emploi"),
+    ("Recrutement ONG internationale Bénin. Envoyez frais administratifs 8.000 F avant entretien. Poste assuré.", "Faux emploi"),
 
     # 3. Scénarios Faux Investissement
     ("Multipliez vos sous en 24 heures ! Investissez 20.000 FCFA et recevez 100.000 FCFA par MTN Mobile Money. Plateforme certifiée et garantie.", "Faux investissement"),
     ("Tontine VIP en ligne: Deposez 50.000 F aujourd'hui, gagnez 250.000 F demain. Ne ratez pas cette opportunité unique.", "Faux investissement"),
     ("Trading automatisé sans risque pour le Bénin. Envoyez vos fonds et recevez vos gains chaque matin sur votre compte Momo.", "Faux investissement"),
+    ("Investissement Bitcoin garanti. Minimum 30.000 FCFA, retour 150.000 F en 72h. Plateforme Binance certifiée.", "Faux investissement"),
+    ("Forex automatique Bénin: Doublez votre capital chaque semaine. Inscription 10.000 F, gains illimités.", "Faux investissement"),
 
     # 4. Scénarios Faux Cadeau / Loterie
     ("Félicitations ! Votre numéro a été tiré au sort lors de la tombola annuelle MTN Bénin. Vous gagnez 1.000.000 FCFA. Contactez vite le 96000000.", "Faux cadeau"),
     ("Promo spéciale indépendance: Moov Bénin vous offre 10 Go d'internet et 50.000 FCFA. Cliquez sur ce lien pour réclamer votre cadeau.", "Faux cadeau"),
     ("Vous avez été sélectionné pour recevoir une subvention présidentielle de 200.000 FCFA. Réclamez avant ce soir 23h59.", "Faux cadeau"),
+    ("Tirage au sort WhatsApp Bénin: Vous êtes l'heureux gagnant de 500.000 FCFA. Envoyez vos coordonnées pour retrait.", "Faux cadeau"),
+    ("Loterie nationale Bénin: Votre ticket a gagné 2.000.000 FCFA. Frais de traitement 15.000 F à envoyer pour déblocage.", "Faux cadeau"),
 
     # 5. Scénarios Phishing / Liens
     ("Alerte sécurité: Connexion inhabituelle à votre compte bancaire BOA. Cliquez sur http://boa-securite-benin.com pour confirmer vos identifiants.", "Phishing"),
     ("Votre colis DHL est bloqué en douane à Cotonou. Payez les frais de dédouanement de 3.000 FCFA sur http://bit.ly/dhl-bj-tax pour débloquer.", "Phishing"),
+    ("FedEx: Votre paquet est en attente. Frais de livraison 5.000 F à payer sur short.io/livraison-bj avant retour expéditeur.", "Phishing"),
+    ("Notification Ecobank: Compte bloqué pour activité suspecte. Débloquez sur tinyurl.com/ecobank-bj avec vos codes.", "Phishing"),
 
-    # 6. Messages Légitimes (Contre-exemples variés pour éviter les faux positifs)
+    # 6. Scénarios Arnaque Colis/Douane (nouvellement détectés)
+    ("Votre colis Amazon est retenu à la douane de Cotonou. Régularisez les frais de 8.000 FCFA pour libération.", "Arnaque colis/douane"),
+    ("Chronopost Bénin: Paquet bloqué. Envoyez frais de traitement 6.500 F au 97111111 pour réception.", "Arnaque colis/douane"),
+    ("DHL Express: Livraison en attente. Payez taxes douanières 12.000 FCFA sur notre lien sécurisé.", "Arnaque colis/douane"),
+
+    # 7. Scénarios Crypto/Investissement (nouvellement détectés)
+    ("Investissez dans la cryptomonnaie avec rendement garanti 300%. Dépôt minimum 25.000 FCFA sur Binance Bénin.", "Faux investissement crypto"),
+    ("Bitcoin automatique: Multipliez x10 votre capital en 1 mois. Plateforme sécurisée et certifiée.", "Faux investissement crypto"),
+    ("Trading Forex Bénin: Formation gratuite + capital de départ. Versez caution 20.000 F remboursable.", "Faux investissement crypto"),
+
+    # 8. Scénarios Visa/Immigration (nouvellement détectés)
+    ("Visa Canada garanti en 30 jours. Frais de dossier ambassade: 45.000 FCFA. Places limitées.", "Arnaque visa/immigration"),
+    ("Bourse d'études USA: Vous êtes présélectionné. Envoyez frais administratifs 35.000 F pour validation finale.", "Arnaque visa/immigration"),
+    ("Programme immigration France: Dossier accepté. Versez frais consulaires 50.000 FCFA pour rendez-vous.", "Arnaque visa/immigration"),
+
+    # 9. Scénarios Héritage/Fonds bloqués (nouvellement détectés)
+    ("Cher bénéficiaire, vous héritez de 5 millions de dollars d'un défunt. Contactez notre notaire pour déblocage des fonds.", "Arnaque à l'héritage"),
+    ("Banque Centrale: Fonds de 3.5 millions USD bloqués à votre nom. Frais de transfert 25.000 FCFA pour libération.", "Arnaque à l'héritage"),
+    ("Testament: Vous êtes désigné héritier d'une fortune au Bénin. Frais notariaux 40.000 F requis.", "Arnaque à l'héritage"),
+
+    # 10. Scénarios Urgence Médicale/Sentimentale (nouvellement détectés)
+    ("Maman c'est moi, mon téléphone est cassé. Je suis à l'hôpital, urgence médicale. Envoie 30.000 F vite.", "Urgence médicale suspecte"),
+    ("Papa besoin urgent de 50.000 FCFA pour opération chirurgicale. Mon numéro ne marche plus, envoie au 66999999.", "Urgence médicale suspecte"),
+    ("Accident grave de ton frère. Frais médicaux urgents 75.000 F. Transfert immédiat requis à l'hôpital.", "Urgence médicale suspecte"),
+
+    # 11. Messages Légitimes (Contre-exemples variés pour éviter les faux positifs)
     ("Bonjour maman, j'ai bien reçu le virement pour les courses. Merci beaucoup, à ce soir.", "Légitime"),
     ("Salut, tu as envoyé le rapport de réunion au directeur ? Confirme-moi quand c'est fait s'il te plaît.", "Légitime"),
     ("Bonjour monsieur, votre commande de chaussures est prête. La livraison est prévue demain à 14h à Akpakpa.", "Légitime"),
@@ -55,6 +90,11 @@ TRAINING_DATA = [
     ("Bonsoir, peux-tu me faire parvenir les documents de la soutenance par WhatsApp ? Merci d'avance.", "Légitime"),
     ("Bonjour Paul, nous serons là pour le déjeuner vers 13 heures avec les enfants.", "Légitime"),
     ("Merci pour ton accueil chaleureux à Porto-Novo hier. On se recontacte la semaine prochaine.", "Légitime"),
+    ("Rendez-vous chez le médecin confirmé pour lundi 10h. N'oublie pas ton carnet de santé.", "Légitime"),
+    ("La réunion du conseil d'administration est reportée au vendredi 15. Ordre du jour inchangé.", "Légitime"),
+    ("Salut, j'ai trouvé un bon restaurant à Cotonou. On y va ce weekend ?", "Légitime"),
+    ("Ton colis est arrivé à la poste d'Akpakpa. Tu peux le retirer avec ta pièce d'identité.", "Légitime"),
+    ("Confirmation de votre inscription à la formation Excel. Début des cours le 20 septembre à l'UAC.", "Légitime"),
 ]
 
 

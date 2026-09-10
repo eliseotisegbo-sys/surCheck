@@ -14,9 +14,9 @@ PHONE_REGEX = re.compile(
     re.IGNORECASE,
 )
 
-# Regex pour URLs
+# Regex pour URLs (accepte avec ou sans protocole)
 URL_REGEX = re.compile(
-    r"https?://(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(?::\d+)?(?:/[^\s]*)?",
+    r"(?:https?://)?(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(?::\d+)?(?:/[^\s]*)?",
     re.IGNORECASE,
 )
 
@@ -26,10 +26,13 @@ CURRENCY_REGEX = re.compile(
     re.IGNORECASE,
 )
 
-# Domaines de raccourcisseurs d'URL connus
+# Domaines de raccourcisseurs d'URL connus (liste étendue)
 SHORTENER_DOMAINS = {
     "bit.ly", "tinyurl.com", "cutt.ly", "is.gd", "t.co",
-    "rb.gy", "goo.su", "ow.ly", "buff.ly", "wa.link", "wa.me"
+    "rb.gy", "goo.su", "ow.ly", "buff.ly", "wa.link", "wa.me",
+    "short.io", "rebrand.ly", "lnkd.in", "s.id", "tiny.cc",
+    "clickme.net", "clck.ru", "shorturl.at", "v.gd", "tr.im",
+    "x.co", "go.dev", "go2.link", "tinycc.com", "url.bz",
 }
 
 
@@ -50,13 +53,16 @@ def extract_urls(text: str) -> List[Dict[str, Any]]:
     extracted = []
     for url in set(urls):
         try:
-            parsed = urlparse(url)
+            # Normaliser l'URL : ajouter https:// si absent
+            normalized_url = url if url.startswith(("http://", "https://")) else f"https://{url}"
+            parsed = urlparse(normalized_url)
             domain = parsed.netloc.lower()
+            
             is_shortener = domain in SHORTENER_DOMAINS or any(
                 domain.endswith("." + s) for s in SHORTENER_DOMAINS
             )
             extracted.append({
-                "url": url,
+                "url": normalized_url,
                 "domain": domain,
                 "is_shortener": is_shortener,
                 "scheme": parsed.scheme,
