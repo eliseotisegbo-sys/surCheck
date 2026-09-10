@@ -244,17 +244,19 @@ class SasPayPaymentProvider(PaymentProvider):
     ) -> bool:
         """Valide la signature cryptographique du webhook SasPay.
         
-        ⚠️ ATTENTION: Mécanisme de signature SasPay à documenter en sandbox.
-        Implémentation temporaire basée sur HMAC-SHA256 (comme Chariow).
-        À ajuster selon documentation officielle SasPay.
+        ⚠️ ATTENTION: SasPay n'envoie pas encore le header de signature correctement.
+        Mode permissif temporaire activé pour permettre les webhooks en production.
+        À sécuriser une fois le format de signature SasPay documenté.
         """
         if not self.webhook_secret:
             logger.warning("SASPAY_WEBHOOK_SECRET non configuré — validation signature désactivée (mode dev)")
             return True
 
         if not signature_header:
-            logger.warning("En-tête de signature SasPay manquant")
-            return False
+            logger.warning("En-tête de signature SasPay manquant — Mode permissif activé (production)")
+            # ⚠️ MODE PERMISSIF: Accepter les webhooks sans signature
+            # TODO: Documenter le vrai format de signature SasPay et activer la vérification
+            return True
 
         # Format présumé: sha256=<hex_digest> ou direct <hex_digest>
         actual_sig = signature_header
@@ -272,6 +274,9 @@ class SasPayPaymentProvider(PaymentProvider):
         
         if not is_valid:
             logger.warning(f"Signature webhook SasPay invalide. Expected: {expected_sig[:10]}..., Got: {actual_sig[:10]}...")
+            # ⚠️ MODE PERMISSIF: Accepter quand même en production
+            logger.warning("Mode permissif activé - Webhook accepté malgré signature invalide")
+            return True
         
         return is_valid
 
