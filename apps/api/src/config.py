@@ -50,6 +50,9 @@ class Settings(BaseSettings):
         "",
     )
 
+    # Paiement : Provider sélectionné (chariow | saspay)
+    PAYMENT_PROVIDER: str = os.getenv("PAYMENT_PROVIDER", "chariow")
+
     # Chariow API (Checkout & Pulses/Webhooks)
     CHARIOW_API_KEY: str = os.getenv(
         "CHARIOW_API_KEY", "sk_o0xs5yj1_6ed3b1413ce916e7835c6d884b6548f7"
@@ -62,6 +65,15 @@ class Settings(BaseSettings):
     CHARIOW_PRODUCT_PACK_5: str = os.getenv("CHARIOW_PRODUCT_PACK_5", "prd_pack_5")
     CHARIOW_PRODUCT_PACK_10: str = os.getenv("CHARIOW_PRODUCT_PACK_10", "prd_pack_10")
     CHARIOW_PRODUCT_PACK_25: str = os.getenv("CHARIOW_PRODUCT_PACK_25", "prd_pack_25")
+
+    # SasPay API (Softpay Mobile Money - Alternatif Chariow)
+    SASPAY_API_KEY: str = os.getenv(
+        "SASPAY_API_KEY", ""  # sk_test_xxx pour sandbox, sk_live_xxx pour prod
+    )
+    SASPAY_BASE_URL: str = os.getenv(
+        "SASPAY_BASE_URL", "https://api.saspay.me/api/v1"
+    )
+    SASPAY_WEBHOOK_SECRET: str = os.getenv("SASPAY_WEBHOOK_SECRET", "")
 
     # Tarifs officiels SûrCheck (minimum Chariow : 565 FCFA)
     CREDIT_PACK_1_FCFA: int = 600      # Analyse unique = 600 FCFA
