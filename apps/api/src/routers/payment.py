@@ -24,7 +24,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel, Field
 
 from ..config import settings
-from ..routers.auth import get_current_user
+from ..routers.auth import get_current_user, get_current_user_optional
 from ..services.chariow_provider import chariow_provider
 from ..services.saspay_provider import saspay_provider
 from ..services.payment_provider import PaymentProvider
@@ -115,9 +115,12 @@ PACKS = {
 
 class CheckoutRequest(BaseModel):
     pack_id: str = Field(..., description="pack_1, pack_5, pack_10 ou pack_25")
-    phone_number: Optional[str] = Field(None, description="Numéro de téléphone pour Mobile Money")
+    phone_number: str = Field(..., description="Numéro de téléphone pour Mobile Money (requis)")
     country_code: Optional[str] = Field("BJ", description="Code pays ISO-2 (BJ pour Bénin)")
     analysis_id: Optional[str] = Field(None, description="ID de l'analyse à débloquer si paiement direct")
+    # Mode invité (premier paiement sans connexion)
+    guest_email: Optional[str] = Field(None, description="Email invité pour premier paiement (optionnel)")
+    guest_name: Optional[str] = Field(None, description="Nom invité pour premier paiement (optionnel)")
 
 
 class CheckoutResponse(BaseModel):
@@ -147,12 +150,18 @@ async def list_packs():
 @router.post("/initiate", response_model=CheckoutResponse)
 async def create_checkout_session(
     body: CheckoutRequest,
-    current_user: Dict[str, Any] = Depends(get_current_user),
+    current_user_optional: Optional[Dict[str, Any]] = Depends(get_current_user_optional),
 ):
-    """Crée une session de checkout sécurisée auprès de Chariow.
-
+    """Crée une session de checkout sécurisée.
+    
+    Modes supportés:
+    1. Utilisateur connecté : Utilise les infos du compte
+    2. Mode invité (premier paiement) : Utilise guest_email et guest_name
+       - Uniquement pour pack_1 (600 FCFA)
+       - Créera un compte automatiquement après paiement réussi
+    
     Le serveur valide le pack, force le montant et les crédits depuis sa propre configuration
-    et injecte des métadonnées cryptographiquement isolées pour le traitement du Pulse ultérieur.
+    et injecte des métadonnées cryptographiquement isolées pour le traitement du webhook ultérieur.
     """
     pack = PACKS.get(body.pack_id)
     if not pack:
@@ -175,9 +184,43 @@ async def create_checkout_session(
                 detail="Le service de paiement est en cours de configuration. Veuillez réessayer ultérieurement.",
             )
 
-    user_id = str(current_user["id"])
-    user_email = current_user.get("email", "")
-    user_name = current_user.get("name", "Utilisateur SûrCheck")
+    # MODE 1 : Utilisateur connecté
+    if current_user_optional:
+        user_id = str(current_user_optional["id"])
+        user_email = current_user_optional.get("email", "")
+        user_name = current_user_optional.get("name", "Utilisateur SûrCheck")
+        is_guest = False
+    
+    # MODE 2 : Mode invité (premier paiement)
+    elif body.guest_email and body.guest_name:
+        # Mode invité : Uniquement pack_1 (600 FCFA) autorisé
+        if body.pack_id != "pack_1":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Mode invité disponible uniquement pour le pack 1 crédit (600 FCFA). Connectez-vous pour les autres packs.",
+            )
+        
+        # Créer un utilisateur temporaire (sera converti en vrai compte après paiement)
+        user_id = f"guest_{uuid.uuid4()}"
+        user_email = body.guest_email.strip().lower()
+        user_name = body.guest_name.strip()
+        is_guest = True
+        
+        # Vérifier que l'email n'existe pas déjà
+        existing_user = await supabase_db.get_user_by_email(user_email)
+        if existing_user:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Un compte existe déjà avec cet email. Veuillez vous connecter.",
+            )
+    
+    # MODE 3 : Ni connecté ni invité
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Connexion requise. Pour un premier paiement sans compte, fournissez guest_email et guest_name.",
+        )
+    
     name_parts = user_name.split()
     first_name = name_parts[0] if name_parts else "Client"
     last_name = name_parts[-1] if len(name_parts) > 1 else "SûrCheck"
@@ -188,6 +231,8 @@ async def create_checkout_session(
     redirect_url = f"{settings.APP_URL}/paiement/success?order_ref={internal_order_ref}"
     if body.analysis_id:
         redirect_url += f"&analysis_id={body.analysis_id}"
+    if is_guest:
+        redirect_url += f"&guest=true&email={user_email}"
 
     # Métadonnées serveur (max 10 clés, 255 chars chacune)
     # ⚠️ IMPORTANT : SasPay nécessite le montant explicite dans les metadata

@@ -30,7 +30,7 @@ class Settings(BaseSettings):
         "JWT_SECRET_KEY", "surcheck_jwt_secret_key_development_only_change_in_production"
     )
     JWT_ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440  # 24h
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 10080  # 7 jours (7 * 24 * 60 = 10080 minutes)
 
     # Base de données PostgreSQL / Supabase
     DATABASE_URL: str = os.getenv(

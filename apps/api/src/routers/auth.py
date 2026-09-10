@@ -66,7 +66,10 @@ async def get_current_user(credentials: Optional[HTTPAuthorizationCredentials] =
         if not user_id:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token invalide.")
     except JWTError:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Session expirée ou invalide.")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, 
+            detail="Session expirée ou invalide. Veuillez vous reconnecter."
+        )
 
     # Récupération utilisateur depuis Supabase
     user = await supabase_db.get_user_by_id(user_id)
@@ -76,6 +79,28 @@ async def get_current_user(credentials: Optional[HTTPAuthorizationCredentials] =
 
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Utilisateur introuvable.")
+
+    return user
+
+
+async def get_current_user_optional(credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)) -> Optional[Dict[str, Any]]:
+    """Version optionnelle de get_current_user - Retourne None si pas authentifié au lieu de lever une erreur."""
+    if not credentials:
+        return None
+
+    token = credentials.credentials
+    try:
+        payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
+        user_id: str = payload.get("sub")
+        if not user_id:
+            return None
+    except JWTError:
+        return None
+
+    # Récupération utilisateur depuis Supabase
+    user = await supabase_db.get_user_by_id(user_id)
+    if not user:
+        user = next((u for u in IN_MEMORY_USERS.values() if u["id"] == user_id), None)
 
     return user
 
