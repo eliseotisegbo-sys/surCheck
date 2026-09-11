@@ -11,6 +11,49 @@ from .rules import evaluate_rules
 from .classifier import scam_classifier
 
 
+# Table de combinaisons de signaux qui se renforcent mutuellement
+COOCCURRENCE_BONUSES = [
+    # (signal1, signal2, bonus, justification)
+    ({"RULE_URGENCY"}, {"RULE_MONEY_REQ"}, 15, "Pression temporelle + demande d'argent"),
+    ({"RULE_UNREAL_GAIN"}, {"RULE_MONEY_REQ"}, 20, "Promesse de gain + frais à payer"),
+    ({"RULE_USURPATION_MOMO"}, {"RULE_OTP_PIN"}, 25, "Faux opérateur + demande de code"),
+    ({"RULE_SUSPICIOUS_LINK", "SIG_SHORT_URL"}, {"RULE_URGENCY"}, 15, "Lien suspect + urgence"),
+    ({"RULE_ROMANTIC_EMERGENCY"}, {"RULE_MONEY_REQ"}, 20, "Urgence sentimentale + argent répété"),
+    ({"RULE_FAKE_TECH_SUPPORT"}, {"RULE_OTP_PIN"}, 25, "Faux support + accès/code"),
+]
+
+
+def apply_cooccurrence_bonus(signals: List[DetectedSignal]) -> int:
+    """Calcule le bonus de score basé sur la co-occurrence de signaux.
+    
+    Deux signaux faibles présents ensemble sont souvent plus révélateurs
+    que leur somme simple.
+    
+    Args:
+        signals: Liste des signaux détectés
+        
+    Returns:
+        Bonus de score à ajouter (0 si aucune combinaison détectée)
+    """
+    if len(signals) < 2:
+        return 0
+    
+    # Construire l'ensemble des codes présents
+    signal_codes = {s.code for s in signals}
+    
+    total_bonus = 0
+    applied_combinations = []
+    
+    # Vérifier chaque combinaison prédéfinie
+    for set1, set2, bonus, justification in COOCCURRENCE_BONUSES:
+        # Vérifier si les deux ensembles de codes sont présents
+        if set1 & signal_codes and set2 & signal_codes:
+            total_bonus += bonus
+            applied_combinations.append(justification)
+    
+    return total_bonus
+
+
 def calculate_risk(text: str, content_type: ContentType = ContentType.TEXT) -> AnalysisResult:
     """Exécute le pipeline d'analyse hybride complet :
     1. Normalisation
@@ -50,8 +93,12 @@ def calculate_risk(text: str, content_type: ContentType = ContentType.TEXT) -> A
                 rule_score += 25
 
     # 5. Agrégation pondérée (Règles déterministes = 70%, Modèle ML = 30%)
-    if rule_score > 0:
-        raw_score = int((rule_score * 0.70) + (ml_score * 0.30))
+    # Appliquer le bonus de co-occurrence avant la pondération
+    cooccurrence_bonus = apply_cooccurrence_bonus(signals)
+    rule_score_with_bonus = rule_score + cooccurrence_bonus
+    
+    if rule_score_with_bonus > 0:
+        raw_score = int((rule_score_with_bonus * 0.70) + (ml_score * 0.30))
     else:
         if ml_category == "Légitime":
             raw_score = min(ml_score, 18)

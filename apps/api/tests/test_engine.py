@@ -113,6 +113,113 @@ class TestRegles:
         assert len(signals) == 0
         assert score == 0
 
+    # ===== TESTS NOUVELLES RÈGLES (Section 7) =====
+    
+    def test_regle_faux_support_technique(self):
+        """Test positif: Doit déclencher RULE_FAKE_TECH_SUPPORT"""
+        sms = "Votre téléphone est infecté par un virus. Téléchargez TeamViewer pour que nous puissions le nettoyer."
+        signals, score = evaluate_rules(sms)
+        codes = [s.code for s in signals]
+        assert "RULE_FAKE_TECH_SUPPORT" in codes
+        assert score >= 35
+
+    def test_regle_fausse_livraison(self):
+        """Test positif: Doit déclencher RULE_FAKE_DELIVERY_CUSTOMS"""
+        sms = "Votre colis DHL est bloqué en douane à Cotonou. Payez 8000 FCFA de frais de dédouanement."
+        signals, score = evaluate_rules(sms)
+        codes = [s.code for s in signals]
+        assert "RULE_FAKE_DELIVERY_CUSTOMS" in codes
+        assert score >= 30
+
+    def test_regle_usurpation_proche(self):
+        """Test positif: Doit déclencher RULE_ROMANCE_IMPERSONATION"""
+        sms = "Papa c'est moi, j'ai changé de numéro. Je suis bloqué à l'étranger, envoie 50000 FCFA urgent."
+        signals, score = evaluate_rules(sms)
+        codes = [s.code for s in signals]
+        assert "RULE_ROMANCE_IMPERSONATION" in codes
+        assert score >= 35
+
+    def test_regle_faux_remboursement(self):
+        """Test positif: Doit déclencher RULE_FAKE_REFUND"""
+        sms = "SBEE: Remboursement de 18000 F en attente. Cliquez sur ce lien pour validation."
+        signals, score = evaluate_rules(sms)
+        codes = [s.code for s in signals]
+        assert "RULE_FAKE_REFUND" in codes
+        assert score >= 30
+
+    # ===== TESTS NÉGATION (Section 3) =====
+    
+    def test_negation_ne_declenche_pas_otp(self):
+        """Test de négation: Message de prévention ne doit PAS scorer comme demande de code"""
+        sms = "Attention, ne communiquez jamais votre code secret à qui que ce soit, même à un agent MTN."
+        signals, score = evaluate_rules(sms)
+        codes = [s.code for s in signals]
+        assert "RULE_OTP_PIN" not in codes
+
+    def test_negation_ne_declenche_pas_argent(self):
+        """Test de négation: Mise en garde ne doit PAS scorer comme demande d'argent"""
+        sms = "Méfiez-vous des faux recrutements qui demandent des frais de dossier par Mobile Money."
+        signals, score = evaluate_rules(sms)
+        codes = [s.code for s in signals]
+        assert "RULE_MONEY_REQ" not in codes
+
+    def test_recit_ne_declenche_pas_signal(self):
+        """Test de récit: Raconter une arnaque ne doit PAS scorer comme arnaque"""
+        sms = "Mon ami a reçu un message qui demandait son code PIN. C'était une arnaque."
+        signals, score = evaluate_rules(sms)
+        # Le score doit être très faible ou nul
+        assert score < 20
+
+    # ===== TESTS CONTRE-EXEMPLES LÉGITIMES (Section 2) =====
+    
+    def test_legitime_livraison_vraie(self):
+        """Contre-exemple: Vraie livraison ne doit pas déclencher fausse livraison"""
+        sms = "Votre colis est arrivé à la poste d'Akpakpa. Vous pouvez le retirer avec votre pièce d'identité."
+        signals, score = evaluate_rules(sms)
+        codes = [s.code for s in signals]
+        assert "RULE_FAKE_DELIVERY_CUSTOMS" not in codes
+        assert score < 30
+
+    def test_legitime_urgence_medicale_vraie(self):
+        """Contre-exemple: Urgence médicale légitime (1ère personne, pas de demande argent)"""
+        sms = "J'ai oublié mes médicaments à la maison. Peux-tu me les apporter à l'hôpital ?"
+        signals, score = evaluate_rules(sms)
+        # Pas de score élevé pour une demande légitime
+        assert score < 40
+
+    def test_legitime_mention_code_sans_demande(self):
+        """Contre-exemple: Parler de code sans le demander"""
+        sms = "J'ai changé mon code PIN hier. Tout fonctionne bien maintenant."
+        signals, score = evaluate_rules(sms)
+        codes = [s.code for s in signals]
+        assert "RULE_OTP_PIN" not in codes
+
+
+# ===== TESTS CO-OCCURRENCE (Section 4) =====
+
+class TestCooccurrence:
+    """Tests spécifiques pour vérifier que les signaux se renforcent mutuellement"""
+    
+    def test_cooccurrence_urgence_plus_argent(self):
+        """Urgence + Argent doit avoir un bonus de +15"""
+        sms = "URGENT ! Envoyez 5000 FCFA de frais de dossier avant ce soir sinon vous perdez le poste."
+        result = calculate_risk(sms)
+        # Le score doit être significativement plus élevé qu'avec un seul signal
+        assert result.risk_score >= 50
+
+    def test_cooccurrence_gain_plus_argent(self):
+        """Gain + Argent doit avoir un bonus de +20"""
+        sms = "Félicitations ! Vous avez gagné 500000 FCFA. Payez 3000 F de frais pour débloquer votre gain."
+        result = calculate_risk(sms)
+        assert result.risk_score >= 60
+
+    def test_cooccurrence_usurpation_plus_code(self):
+        """Usurpation + Code doit avoir un bonus de +25 (quasi jamais légitime)"""
+        sms = "Service client MTN : Votre compte est bloqué. Envoyez votre code PIN pour déblocage immédiat."
+        result = calculate_risk(sms)
+        assert result.risk_score >= 75
+        assert result.risk_level == RiskLevel.ELEVE
+
 
 # =====================================================================
 # SCORER — PIPELINE COMPLET

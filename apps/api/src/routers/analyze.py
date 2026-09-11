@@ -118,7 +118,7 @@ async def analyze_image(file: UploadFile = File(...)):
     image_bytes = await file.read()
     content_type = file.content_type or "image/jpeg"
 
-    extracted_text, success = extract_text_from_image(image_bytes, content_type)
+    extracted_text, success, ocr_confidence = extract_text_from_image(image_bytes, content_type)
     if not success or not extracted_text:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -126,6 +126,13 @@ async def analyze_image(file: UploadFile = File(...)):
         )
 
     result = calculate_risk(extracted_text, content_type=ContentType.IMAGE)
+    
+    # Ajuster le niveau de confiance si l'OCR a une faible confiance
+    if ocr_confidence < 0.6:
+        result.confidence_level = "incertain"
+    elif ocr_confidence < 0.8 and result.confidence_level == "elevee":
+        result.confidence_level = "moyenne"
+    
     await _enrich_with_reputation(result, extracted_text)
 
     IN_MEMORY_ANALYSES[result.id] = result
