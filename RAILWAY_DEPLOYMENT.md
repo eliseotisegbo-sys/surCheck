@@ -140,9 +140,9 @@ JWT_SECRET_KEY=VOTRE_CLE_JWT_ALEATOIRE_ICI
 JWT_ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=1440
 PHONE_HASH_SALT=surcheck_bj_secure_salt_2026_antigravity_trust
-CHARIOW_API_KEY=sk_o0xs5yj1_6ed3b1413ce916e7835c6d884b6548f7
+CHARIOW_API_KEY=<<VOTRE_CLE_CHARIOW_API>>
 CHARIOW_BASE_URL=https://api.chariow.com/v1
-CHARIOW_WEBHOOK_SECRET=whsec_GmbUMyji4cdf07Hv1pRGlBOUquHiZ4ibfAXW38xz
+CHARIOW_WEBHOOK_SECRET=<<VOTRE_SECRET_WEBHOOK_CHARIOW>>
 CHARIOW_PRODUCT_PACK_1=prd_ltwqdexr
 CHARIOW_PRODUCT_PACK_5=prd_c7ju43kh
 CHARIOW_PRODUCT_PACK_10=prd_060n1o9q
@@ -311,7 +311,7 @@ https://[VOTRE_URL_RAILWAY]/api/v1/payment/webhook
 https://surcheck-production-abc123.up.railway.app/api/v1/payment/webhook
 ```
 
-4. **Secret** : Doit être `whsec_GmbUMyji4cdf07Hv1pRGlBOUquHiZ4ibfAXW38xz`
+4. **Secret** : Copier depuis app.chariow.com → Pulses → Votre webhook → Secret
 5. **Events** : Sélectionnez `checkout.completed`
 6. Cliquez sur **"Save"** ou **"Update"**
 

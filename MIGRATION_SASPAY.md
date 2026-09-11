@@ -117,9 +117,9 @@ SASPAY_BASE_URL=https://api.saspay.me/api/v1
 SASPAY_WEBHOOK_SECRET=<<SECRET_RECU_LORS_CREATION_WEBHOOK>>
 
 # ⚠️ Garder Chariow configuré pour rollback instantané
-CHARIOW_API_KEY=sk_o0xs5yj1_6ed3b1413ce916e7835c6d884b6548f7
+CHARIOW_API_KEY=<<VOTRE_CLE_CHARIOW_API>>
 CHARIOW_BASE_URL=https://api.chariow.com/v1
-CHARIOW_WEBHOOK_SECRET=whsec_GmbUMyji4cdf07Hv1pRGlBOUquHiZ4ibfAXW38xz
+CHARIOW_WEBHOOK_SECRET=<<VOTRE_SECRET_WEBHOOK_CHARIOW>>
 ```
 
 ### Étape 1.2 : Redéployer l'API
@@ -298,9 +298,9 @@ SASPAY_BASE_URL=https://api.saspay.me/api/v1
 SASPAY_WEBHOOK_SECRET=<<SECRET_WEBHOOK_PRODUCTION>>
 
 # Backup Chariow (GARDER pour rollback)
-CHARIOW_API_KEY=sk_o0xs5yj1_6ed3b1413ce916e7835c6d884b6548f7
+CHARIOW_API_KEY=<<VOTRE_CLE_CHARIOW_API>>
 CHARIOW_BASE_URL=https://api.chariow.com/v1
-CHARIOW_WEBHOOK_SECRET=whsec_GmbUMyji4cdf07Hv1pRGlBOUquHiZ4ibfAXW38xz
+CHARIOW_WEBHOOK_SECRET=<<VOTRE_SECRET_WEBHOOK_CHARIOW>>
 ```
 
 ### Étape 3.3 : Déploiement progressif (recommandé)

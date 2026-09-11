@@ -55,7 +55,7 @@ class Settings(BaseSettings):
 
     # Chariow API (Checkout & Pulses/Webhooks)
     CHARIOW_API_KEY: str = os.getenv(
-        "CHARIOW_API_KEY", "sk_o0xs5yj1_6ed3b1413ce916e7835c6d884b6548f7"
+        "CHARIOW_API_KEY", ""
     )
     CHARIOW_BASE_URL: str = os.getenv(
         "CHARIOW_BASE_URL", "https://api.chariow.com/v1"

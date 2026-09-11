@@ -1,4 +1,7 @@
-Voici la clé api a utilisé: sk_o0xs5yj1_6ed3b1413ce916e7835c6d884b6548f7
+# Documentation API Chariow — SûrCheck AI
+
+> ⚠️ **Configuration requise :** Clé API à configurer dans Railway → Variables → `CHARIOW_API_KEY`
+
 > ## Documentation Index
 > Fetch the complete documentation index at: https://chariow.dev/llms.txt
 > Use this file to discover all available pages before exploring further.
