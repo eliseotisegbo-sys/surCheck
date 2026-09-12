@@ -188,7 +188,7 @@ export async function fetchPacks(): Promise<CreditPack[]> {
   }
 }
 
-/** Initie une session de paiement Chariow pour un pack. */
+/** Initie une session de paiement SasPay pour un pack. */
 export async function createCheckoutSession(
   packId: string,
   analysisId?: string,

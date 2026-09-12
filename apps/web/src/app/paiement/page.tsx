@@ -80,7 +80,7 @@ function PaiementContent() {
       }
 
       if (res.checkout_url) {
-        // Redirection vers la page de paiement sécurisée Chariow
+        // Redirection vers la page de paiement sécurisée SasPay
         window.location.href = res.checkout_url;
       } else {
         setErrorMsg("Lien de paiement indisponible. Veuillez réessayer dans quelques instants.");
@@ -137,7 +137,7 @@ function PaiementContent() {
           </p>
         </div>
 
-        {/* Alerte si déjà possédé (règle Chariow) */}
+        {/* Alerte achat multiple */}
         {alreadyPurchased && (
           <div className="rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 p-4 space-y-2 text-amber-900 dark:text-amber-200 text-xs sm:text-sm">
             <div className="flex items-center gap-2 font-bold">
@@ -266,7 +266,7 @@ function PaiementContent() {
         {/* Note de conformité & sécurité */}
         <div className="pt-2 text-center text-[11px] text-slate-500 dark:text-slate-400 space-y-1">
           <p>
-            Paiement certifié via la passerelle Chariow. Compatible MTN Mobile Money, Moov Money Bénin et cartes bancaires.
+            Paiement certifié via SasPay (Softpay). Compatible MTN Mobile Money, Moov Money, Wave, Orange Money et autres opérateurs Bénin.
           </p>
           <p>
             Crédits attachés définitivement à votre compte, sans limitation de durée.

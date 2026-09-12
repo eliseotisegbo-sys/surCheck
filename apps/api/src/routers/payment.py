@@ -2,11 +2,8 @@
 Gère les sessions de checkout, la réception des webhooks signés,
 l'attribution idempotente des crédits et la traçabilité des transactions.
 
-Compatible avec plusieurs providers de paiement via interface PaymentProvider :
-- Chariow (provider par défaut, configuration actuelle)
-- SasPay (Softpay Mobile Money, alternatif)
-
-Le provider actif est sélectionné via la variable d'environnement PAYMENT_PROVIDER.
+Provider de paiement unique : SasPay (Softpay Mobile Money)
+Supporte MTN, Moov, Wave, Orange Money et autres opérateurs Mobile Money.
 
 Conforme aux directives du document technique Paiements + Crédits SûrCheck :
 - PostgreSQL est la seule source de vérité pour le solde.
@@ -25,9 +22,7 @@ from pydantic import BaseModel, Field
 
 from ..config import settings
 from ..routers.auth import get_current_user, get_current_user_optional
-from ..services.chariow_provider import chariow_provider
 from ..services.saspay_provider import saspay_provider
-from ..services.payment_provider import PaymentProvider
 from ..services.credit_service import credit_service
 from ..services.supabase_db import supabase_db
 
@@ -36,33 +31,8 @@ logger = logging.getLogger("surcheck.payment")
 router = APIRouter(prefix="/payment", tags=["Paiement"])
 
 
-# ─── SÉLECTION DU PROVIDER DE PAIEMENT ──────────────────────────────────────
-
-def get_payment_provider() -> PaymentProvider:
-    """Retourne le provider de paiement actif selon la configuration.
-    
-    Sélection via variable d'environnement PAYMENT_PROVIDER:
-    - "chariow" (défaut) : Provider Chariow actuel
-    - "saspay" : Provider SasPay (Softpay Mobile Money)
-    
-    Permet de basculer entre providers sans modifier le code.
-    Rollback instantané en changeant PAYMENT_PROVIDER=chariow
-    """
-    provider_name = settings.PAYMENT_PROVIDER.lower().strip()
-    
-    if provider_name == "saspay":
-        logger.info("Provider de paiement actif : SasPay (Softpay Mobile Money)")
-        return saspay_provider
-    else:
-        # Par défaut Chariow (rétrocompatibilité)
-        if provider_name != "chariow":
-            logger.warning(f"Provider inconnu '{provider_name}', fallback sur Chariow")
-        logger.info("Provider de paiement actif : Chariow")
-        return chariow_provider
-
-
-# Instance globale du provider actif
-payment_provider = get_payment_provider()
+# Provider de paiement unique
+payment_provider = saspay_provider
 
 # ─── PACKS OFFICIELS SÛRCHECK ────────────────────────────────────────────────
 
@@ -73,7 +43,6 @@ PACKS = {
         "amount_fcfa": settings.CREDIT_PACK_1_FCFA,
         "label": "Analyse unique",
         "unit_price": 600,
-        "product_id": settings.CHARIOW_PRODUCT_PACK_1,
         "popular": False,
         "description": "1 analyse complète immédiate (600 FCFA)",
     },
@@ -83,7 +52,6 @@ PACKS = {
         "amount_fcfa": settings.CREDIT_PACK_5_FCFA,
         "label": "Petit pack",
         "unit_price": 300,
-        "product_id": settings.CHARIOW_PRODUCT_PACK_5,
         "popular": False,
         "description": "5 analyses complètes réutilisables (300 F / analyse)",
     },
@@ -93,7 +61,6 @@ PACKS = {
         "amount_fcfa": settings.CREDIT_PACK_10_FCFA,
         "label": "Pack recommandé",
         "unit_price": 250,
-        "product_id": settings.CHARIOW_PRODUCT_PACK_10,
         "popular": True,
         "description": "10 analyses complètes (250 F / analyse) — Le plus populaire",
     },
@@ -103,7 +70,6 @@ PACKS = {
         "amount_fcfa": settings.CREDIT_PACK_25_FCFA,
         "label": "Gros pack",
         "unit_price": 200,
-        "product_id": settings.CHARIOW_PRODUCT_PACK_25,
         "popular": False,
         "description": "25 analyses complètes (200 F / analyse)",
     },
@@ -142,7 +108,7 @@ async def list_packs():
     return {
         "packs": list(PACKS.values()),
         "currency": "XOF",
-        "note": "Tarifs TTC en FCFA. Paiement sécurisé via Mobile Money (MTN, Moov Bénin) opéré par Chariow.",
+        "note": "Tarifs TTC en FCFA. Paiement sécurisé via Mobile Money (MTN, Moov, Wave, Orange Money) opéré par SasPay.",
     }
 
 
@@ -170,19 +136,12 @@ async def create_checkout_session(
             detail=f"Pack inconnu. Valeurs acceptées : {', '.join(PACKS.keys())}",
         )
 
-    # Vérification des clés API selon le provider actif
-    if settings.PAYMENT_PROVIDER.lower() == "saspay":
-        if not settings.SASPAY_API_KEY:
-            raise HTTPException(
-                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                detail="Le service de paiement SasPay est en cours de configuration. Veuillez réessayer ultérieurement.",
-            )
-    else:
-        if not settings.CHARIOW_API_KEY:
-            raise HTTPException(
-                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                detail="Le service de paiement est en cours de configuration. Veuillez réessayer ultérieurement.",
-            )
+    # Vérification de la clé API SasPay
+    if not settings.SASPAY_API_KEY:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Le service de paiement SasPay est en cours de configuration. Veuillez réessayer ultérieurement.",
+        )
 
     # MODE 1 : Utilisateur connecté
     if current_user_optional:
@@ -257,8 +216,8 @@ async def create_checkout_session(
                 json={
                     "id": internal_order_ref,
                     "user_id": user_id,
-                    "provider": settings.PAYMENT_PROVIDER.lower(),  # Traçabilité provider
-                    "product_id": pack.get("product_id", pack["id"]),  # SasPay n'a pas product_id
+                    "provider": "saspay",  # Provider unique
+                    "product_id": pack["id"],  # SasPay utilise pack_id direct
                     "pack_name": pack["id"],
                     "pack_code": pack["id"],
                     "idempotency_key": internal_order_ref,
@@ -270,9 +229,9 @@ async def create_checkout_session(
     except Exception as e:
         logger.warning(f"Erreur pré-enregistrement transaction pending: {e}")
 
-    # Appel au provider de paiement actif (Chariow ou SasPay)
+    # Appel au provider SasPay
     session = await payment_provider.create_checkout(
-        product_id=pack.get("product_id", pack["id"]),  # SasPay n'utilise pas product_id
+        product_id=pack["id"],  # SasPay utilise pack_id comme identifiant
         email=user_email,
         first_name=first_name,
         last_name=last_name,
@@ -285,7 +244,7 @@ async def create_checkout_session(
     if session.step == "error":
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
-            detail=session.message or f"Échec de l'initialisation de la session {settings.PAYMENT_PROVIDER}.",
+            detail=session.message or "Échec de l'initialisation de la session SasPay.",
         )
 
     # Mise à jour avec external_sale_id si reçu
@@ -315,12 +274,9 @@ async def create_checkout_session(
 
 @router.post("/webhook")
 async def handle_payment_webhook(request: Request):
-    """Récepteur universel des webhooks de paiement (Chariow ou SasPay).
+    """Récepteur des webhooks SasPay.
     
-    Utilise le provider actif pour :
-    - Vérifier la signature cryptographique
-    - Parser l'événement au format unifié
-    - Traiter les paiements de manière identique
+    Vérifie la signature cryptographique et parse l'événement au format unifié.
 
     Événements surveillés :
     - `successful.sale` : Attribution immédiate et idempotente des crédits + déblocage automatique si analyse liée.
@@ -330,26 +286,23 @@ async def handle_payment_webhook(request: Request):
     raw_body = await request.body()
     headers_dict = dict(request.headers)
 
-    # 1. Vérification de signature cryptographique (provider-agnostic)
-    # Détection automatique du header selon le provider
+    # 1. Vérification de signature cryptographique
     sig_header = (
-        request.headers.get("x-chariow-signature")
-        or request.headers.get("X-Chariow-Signature")
-        or request.headers.get("x-saspay-signature")
+        request.headers.get("x-saspay-signature")
         or request.headers.get("X-SasPay-Signature")
         or ""
     )
     if not payment_provider.verify_webhook_signature(raw_body, sig_header):
-        logger.warning(f"Webhook {settings.PAYMENT_PROVIDER} rejeté : signature cryptographique invalide")
+        logger.warning("Webhook SasPay rejeté : signature cryptographique invalide")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Signature de webhook invalide.",
         )
 
-    # 2. Parsing normalisé de l'événement (provider-agnostic)
+    # 2. Parsing normalisé de l'événement
     event = payment_provider.parse_webhook(raw_body, headers_dict)
     logger.info(
-        f"Webhook {settings.PAYMENT_PROVIDER} reçu : event={event.event_name} | sale={event.sale_id} "
+        f"Webhook SasPay reçu : event={event.event_name} | sale={event.sale_id} "
         f"| user={event.user_id} | delivery={event.delivery_id}"
     )
 
@@ -399,7 +352,7 @@ async def handle_payment_webhook(request: Request):
         return {"received": True, "status": "failed_recorded"}
 
     elif event.event_name == "refunded.sale":
-        logger.warning(f"Alerte Remboursement {settings.PAYMENT_PROVIDER} reçu pour vente {event.sale_id}")
+        logger.warning(f"Alerte Remboursement SasPay reçu pour vente {event.sale_id}")
         # Note : Selon la règle section 25, ne jamais créer de solde négatif sans décision admin
         return {"received": True, "status": "refund_logged"}
 
