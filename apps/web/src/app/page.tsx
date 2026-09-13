@@ -36,7 +36,7 @@ import { getCachedUser, clearSession, updateCachedQuota, UserProfile } from "@/l
 import { OPERATOR_EMERGENCY_CONTACTS } from "@/lib/constants";
 
 export default function HomePage() {
-  const [activeTab, setActiveTab] = useState<"text" | "url">("text");
+  const [activeTab, setActiveTab] = useState<"text" | "url" | "image">("text");
   const [inputContent, setInputContent] = useState("");
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
