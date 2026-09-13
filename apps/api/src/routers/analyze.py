@@ -48,21 +48,33 @@ async def _enrich_with_reputation(result: AnalysisResult, text: str):
 
     urls = extract_urls(text)
     for u in urls:
-        rep_count, phishing_match, rep_status = await supabase_db.check_url_reputation(u["url"])
-        if rep_count > 0 or phishing_match:
-            result.signals.append(
-                DetectedSignal(
-                    code="SIG_COMMUNITY_REPORT_URL",
-                    title="Lien ou domaine déjà signalé comme suspect",
-                    category="Lien malveillant",
-                    weight=45,
-                    evidence=u["url"][:40],
-                    advice="N'ouvrez pas ce lien et ne renseignez aucune coordonnée bancaire ou personnelle.",
+        try:
+            rep_count, phishing_match, rep_status = await supabase_db.check_url_reputation(u["url"])
+            if rep_count > 0 or phishing_match:
+                result.signals.append(
+                    DetectedSignal(
+                        code="SIG_COMMUNITY_REPORT_URL",
+                        title="Lien ou domaine déjà signalé comme suspect",
+                        category="Lien malveillant",
+                        weight=45,
+                        evidence=u["url"][:40],
+                        advice="N'ouvrez pas ce lien et ne renseignez aucune coordonnée bancaire ou personnelle.",
+                    )
                 )
-            )
-            result.risk_score = max(result.risk_score, 75)
-            result.risk_level = "eleve"
-            result.headline = "Risque potentiel élevé détecté"
+                result.risk_score = max(result.risk_score, 75)
+                result.risk_level = RiskLevel.ELEVE
+                result.headline = "Risque potentiel élevé détecté"
+        except Exception as e:
+            # Si vérification URL impossible, passer en INDETERMINE pour honnêteté (Section 5.3)
+            import logging
+            logger = logging.getLogger("surcheck.analyze")
+            logger.warning(f"Vérification URL échouée pour {u['url'][:30]}: {e}")
+            
+            # Ne pas forcer un verdict positif si la vérification a échoué
+            if result.risk_level == RiskLevel.FAIBLE:
+                result.risk_level = RiskLevel.INDETERMINE
+                result.confidence_level = "incertain"
+                result.summary += " Nous n'avons pas pu vérifier complètement ce lien."
 
 
 @router.post("/text", response_model=AnalysisResult, status_code=status.HTTP_200_OK)

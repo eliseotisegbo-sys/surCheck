@@ -25,6 +25,7 @@ from ..routers.auth import get_current_user, get_current_user_optional
 from ..services.saspay_provider import saspay_provider
 from ..services.credit_service import credit_service
 from ..services.supabase_db import supabase_db
+from ..pricing import OFFICIAL_PACKS as PACKS
 
 logger = logging.getLogger("surcheck.payment")
 
@@ -33,47 +34,6 @@ router = APIRouter(prefix="/payment", tags=["Paiement"])
 
 # Provider de paiement unique
 payment_provider = saspay_provider
-
-# ─── PACKS OFFICIELS SÛRCHECK ────────────────────────────────────────────────
-
-PACKS = {
-    "pack_1": {
-        "id": "pack_1",
-        "credits": 1,
-        "amount_fcfa": settings.CREDIT_PACK_1_FCFA,
-        "label": "Analyse unique",
-        "unit_price": 600,
-        "popular": False,
-        "description": "1 analyse complète immédiate (600 FCFA)",
-    },
-    "pack_5": {
-        "id": "pack_5",
-        "credits": 5,
-        "amount_fcfa": settings.CREDIT_PACK_5_FCFA,
-        "label": "Petit pack",
-        "unit_price": 300,
-        "popular": False,
-        "description": "5 analyses complètes réutilisables (300 F / analyse)",
-    },
-    "pack_10": {
-        "id": "pack_10",
-        "credits": 10,
-        "amount_fcfa": settings.CREDIT_PACK_10_FCFA,
-        "label": "Pack recommandé",
-        "unit_price": 250,
-        "popular": True,
-        "description": "10 analyses complètes (250 F / analyse) — Le plus populaire",
-    },
-    "pack_25": {
-        "id": "pack_25",
-        "credits": 25,
-        "amount_fcfa": settings.CREDIT_PACK_25_FCFA,
-        "label": "Gros pack",
-        "unit_price": 200,
-        "popular": False,
-        "description": "25 analyses complètes (200 F / analyse)",
-    },
-}
 
 
 

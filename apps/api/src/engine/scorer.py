@@ -5,6 +5,7 @@ Conforme aux sections 9, 21, 23 et 33 du Cahier des Charges.
 import uuid
 from typing import List
 from ..schemas import AnalysisResult, RiskLevel, ContentType, DetectedSignal
+from ..versioning import get_engine_version_string
 from .normalizer import normalize_text
 from .extractor import extract_urls, extract_phone_numbers, extract_amounts
 from .rules import evaluate_rules
@@ -117,13 +118,23 @@ def calculate_risk(text: str, content_type: ContentType = ContentType.TEXT) -> A
         final_score = min(max(raw_score, 10), 96)
 
     # 6. Détermination du niveau de risque
-    if final_score >= 70:
+    # INDETERMINE : Texte trop court, ambigu ou données insuffisantes (Section 5)
+    if len(text.strip().split()) < 4 or len(cleaned_text) < 15:
+        risk_level = RiskLevel.INDETERMINE
+        headline = "Contenu trop court pour une évaluation fiable"
+        summary = (
+            "Le texte analysé ne contient pas assez d'informations pour établir un verdict clair. "
+            "Pour une meilleure analyse, fournissez le message complet incluant le contexte."
+        )
+        confidence = "incertain"
+    elif final_score >= 70:
         risk_level = RiskLevel.ELEVE
         headline = "Risque potentiel élevé détecté"
         summary = (
             "Plusieurs indicateurs critiques ont été identifiés dans ce contenu. "
             "Il est fortement recommandé de ne pas effectuer de transfert et de ne communiquer aucun code."
         )
+        confidence = "elevee"
     elif final_score >= 30:
         risk_level = RiskLevel.PRUDENCE
         headline = "Plusieurs signaux nécessitent une vérification"
@@ -131,6 +142,7 @@ def calculate_risk(text: str, content_type: ContentType = ContentType.TEXT) -> A
             "Des éléments inhabituels ou des formulations suspectes ont été relevés. "
             "Une vérification préalable auprès de la source officielle est indispensable avant tout engagement."
         )
+        confidence = "moyenne" if len(signals) < 2 else "elevee"
     else:
         risk_level = RiskLevel.FAIBLE
         headline = "Aucun signal majeur détecté dans les éléments analysés"
@@ -138,6 +150,7 @@ def calculate_risk(text: str, content_type: ContentType = ContentType.TEXT) -> A
             "L'analyse n'a pas mis en évidence de demande de code, d'urgence artificielle ou de lien malveillant connu. "
             "Restez néanmoins vigilant lors de tout échange financier."
         )
+        confidence = "elevee"
 
     # Détermination de la catégorie principale
     if ml_category != "Légitime":
@@ -149,7 +162,11 @@ def calculate_risk(text: str, content_type: ContentType = ContentType.TEXT) -> A
 
     # Recommandations concrètes d'action ("Que faire maintenant ?")
     recommendations: List[str] = []
-    if risk_level == RiskLevel.ELEVE:
+    if risk_level == RiskLevel.INDETERMINE:
+        recommendations.append("Fournissez le message complet pour une analyse plus précise.")
+        recommendations.append("Incluez le contexte : expéditeur, historique de conversation si disponible.")
+        recommendations.append("En cas de doute sur une demande d'argent ou de code, contactez directement l'opérateur officiel.")
+    elif risk_level == RiskLevel.ELEVE:
         recommendations.append("Ne communiquez jamais votre code secret, mot de passe ou code OTP.")
         recommendations.append("N'envoyez aucun frais ni caution par Mobile Money.")
         recommendations.append("En cas de doute sur un prétendu agent, appelez le numéro vert officiel de l'opérateur (111 pour MTN, 100 pour Moov).")
@@ -161,13 +178,14 @@ def calculate_risk(text: str, content_type: ContentType = ContentType.TEXT) -> A
         recommendations.append("Conservez toujours vos identifiants confidentiels.")
         recommendations.append("Vérifiez toujours votre solde réel sur votre téléphone (*880# ou *855#) en cas de message de transfert.")
 
-    # Niveau de confiance
-    if len(text.strip().split()) < 4:
-        confidence = "incertain"
-    elif len(signals) >= 2 or risk_level == RiskLevel.FAIBLE:
-        confidence = "elevee"
-    else:
-        confidence = "moyenne"
+    # Niveau de confiance (sans écraser celui défini ci-dessus)
+    if confidence != "incertain":  # Déjà défini pour INDETERMINE
+        if len(text.strip().split()) < 4:
+            confidence = "incertain"
+        elif len(signals) >= 2 or risk_level == RiskLevel.FAIBLE:
+            confidence = "elevee"
+        else:
+            confidence = "moyenne"
 
     return AnalysisResult(
         id=str(uuid.uuid4()),
@@ -180,5 +198,5 @@ def calculate_risk(text: str, content_type: ContentType = ContentType.TEXT) -> A
         summary=summary,
         signals=signals,
         recommendations=recommendations,
-        engine_version="v1.0.0",
+        engine_version=get_engine_version_string(),
     )

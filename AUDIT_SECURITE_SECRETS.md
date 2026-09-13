@@ -1,5 +1,9 @@
 # 🚨 AUDIT SÉCURITÉ — SECRETS EXPOSÉS
 
+> ⚠️ **DOCUMENT HISTORIQUE** : Ce fichier documente l'audit initial de sécurité.  
+> Les valeurs de secrets citées sont **ANONYMISÉES ou OBSOLÈTES**.  
+> Voir `SECRETS_COMPROMIS_A_REGENERER.md` pour les actions en cours.
+
 **Date :** 2026-09-09  
 **Phase :** SûrCheck Reliability Phase  
 **Priorité :** 🔴 CRITIQUE
@@ -13,8 +17,8 @@
 1. ❌ **Mot de passe DB** : `Ge5ZNjlSDRT9cw1t` (`.env.example` — NETTOYÉ)
 2. ❌ **JWT_SECRET_KEY** : `8a027971-87c1-4053-ada5-d15f7517a455` (`.env.example` — NETTOYÉ)
 3. ❌ **SUPABASE_SERVICE_ROLE_KEY** : `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...` (`.env.example` — NETTOYÉ)
-4. ❌ **Chariow API Key** : `sk_o0xs5yj1_6ed3b1413ce916e7835c6d884b6548f7` (5 fichiers)
-5. ❌ **Chariow Webhook Secret** : `whsec_GmbUMyji4cdf07Hv1pRGlBOUquHiZ4ibfAXW38xz` (4 fichiers)
+4. ❌ **Chariow API Key** : `sk_o0xs5yj1_***` (5 fichiers - OBSOLÈTE, service non utilisé)
+5. ❌ **Chariow Webhook Secret** : `whsec_GmbU***` (4 fichiers - OBSOLÈTE, service non utilisé)
 
 ### 🛡️ STATUT ACTUEL
 
@@ -23,8 +27,8 @@
 | Mot de passe DB | `.env.example` ligne 283 | Nettoyé | ✅ CORRIGÉ |
 | JWT_SECRET_KEY | `.env.example` ligne 284 | Nettoyé | ✅ CORRIGÉ |
 | SUPABASE_SERVICE_ROLE_KEY | `.env.example` ligne 285 | Nettoyé | ✅ CORRIGÉ |
-| Chariow API Key | 5 fichiers (voir détail) | À nettoyer | ⏸️ EN COURS |
-| Chariow Webhook Secret | 4 fichiers (voir détail) | À nettoyer | ⏸️ EN COURS |
+| Chariow API Key | 5 fichiers (voir détail) | Obsolète (migration SasPay) | ✅ SERVICE NON UTILISÉ |
+| Chariow Webhook Secret | 4 fichiers (voir détail) | Obsolète (migration SasPay) | ✅ SERVICE NON UTILISÉ |
 
 ---
 
@@ -59,7 +63,7 @@ SUPABASE_SERVICE_ROLE_KEY= eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 **Secret exposé :**
 ```markdown
-Voici la clé api a utilisé: sk_o0xs5yj1_6ed3b1413ce916e7835c6d884b6548f7
+Voici la clé api a utilisé: sk_o0xs5yj1_*** [ANONYMISÉ]
 ```
 
 **Action requise :**
@@ -79,7 +83,7 @@ Voici la clé api a utilisé: sk_o0xs5yj1_6ed3b1413ce916e7835c6d884b6548f7
 **Secret exposé :**
 ```python
 CHARIOW_API_KEY: str = os.getenv(
-    "CHARIOW_API_KEY", "sk_o0xs5yj1_6ed3b1413ce916e7835c6d884b6548f7"
+    "CHARIOW_API_KEY", "sk_o0xs5yj1_***"  # [ANONYMISÉ]
 )
 ```
 
@@ -102,8 +106,8 @@ CHARIOW_API_KEY: str = os.getenv("CHARIOW_API_KEY", "")
 
 **Secrets exposés :**
 ```bash
-CHARIOW_API_KEY=sk_o0xs5yj1_6ed3b1413ce916e7835c6d884b6548f7
-CHARIOW_WEBHOOK_SECRET=whsec_GmbUMyji4cdf07Hv1pRGlBOUquHiZ4ibfAXW38xz
+CHARIOW_API_KEY=sk_o0xs5yj1_*** [ANONYMISÉ]
+CHARIOW_WEBHOOK_SECRET=whsec_GmbU*** [ANONYMISÉ]
 ```
 
 **Action requise :**
@@ -123,11 +127,11 @@ CHARIOW_WEBHOOK_SECRET=<<VOTRE_SECRET_WEBHOOK_CHARIOW>>
 **Secrets exposés :**
 ```bash
 # Ligne 143-146 :
-CHARIOW_API_KEY=sk_o0xs5yj1_6ed3b1413ce916e7835c6d884b6548f7
-CHARIOW_WEBHOOK_SECRET=whsec_GmbUMyji4cdf07Hv1pRGlBOUquHiZ4ibfAXW38xz
+CHARIOW_API_KEY=sk_o0xs5yj1_*** [ANONYMISÉ]
+CHARIOW_WEBHOOK_SECRET=whsec_GmbU*** [ANONYMISÉ]
 
 # Ligne 314 :
-4. **Secret** : Doit être `whsec_GmbUMyji4cdf07Hv1pRGlBOUquHiZ4ibfAXW38xz`
+4. **Secret** : whsec_GmbU*** [ANONYMISÉ]
 ```
 
 **Action requise :**
@@ -150,12 +154,12 @@ CHARIOW_WEBHOOK_SECRET=<<VOTRE_SECRET_WEBHOOK_CHARIOW>>
 **Secrets exposés :**
 ```bash
 # Ligne 120-123 :
-CHARIOW_API_KEY=sk_o0xs5yj1_6ed3b1413ce916e7835c6d884b6548f7
-CHARIOW_WEBHOOK_SECRET=whsec_GmbUMyji4cdf07Hv1pRGlBOUquHiZ4ibfAXW38xz
+CHARIOW_API_KEY=sk_o0xs5yj1_*** [ANONYMISÉ]
+CHARIOW_WEBHOOK_SECRET=whsec_GmbU*** [ANONYMISÉ]
 
 # Ligne 301-304 (doublon) :
-CHARIOW_API_KEY=sk_o0xs5yj1_6ed3b1413ce916e7835c6d884b6548f7
-CHARIOW_WEBHOOK_SECRET=whsec_GmbUMyji4cdf07Hv1pRGlBOUquHiZ4ibfAXW38xz
+CHARIOW_API_KEY=sk_o0xs5yj1_*** [ANONYMISÉ]
+CHARIOW_WEBHOOK_SECRET=whsec_GmbU*** [ANONYMISÉ]
 ```
 
 **Action requise :**

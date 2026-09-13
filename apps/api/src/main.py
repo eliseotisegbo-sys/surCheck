@@ -3,6 +3,8 @@ Conforme aux standards de sécurité, d'audit et de performance (Phase 8).
 """
 
 import os
+import sys
+import logging
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi import Limiter, _rate_limit_exceeded_handler
@@ -12,6 +14,83 @@ from slowapi.middleware import SlowAPIMiddleware
 
 from .config import settings
 from .routers import analyze, reports, auth, payment, credits, admin
+
+logger = logging.getLogger("surcheck.startup")
+
+
+def validate_production_secrets():
+    """Valide que tous les secrets critiques sont configurés en production.
+    
+    Refuse le démarrage si ENVIRONMENT=production et qu'un secret critique est :
+    - Vide ("")
+    - Égal à une valeur de développement connue
+    
+    Conforme à la section 1.5 de FIABILISATION_PAIEMENT_SASPAY_SURCHECK_AI.md
+    """
+    if settings.ENVIRONMENT != "production":
+        return  # Validation uniquement en production
+    
+    errors = []
+    
+    # Secrets critiques à valider
+    critical_secrets = {
+        "JWT_SECRET_KEY": settings.JWT_SECRET_KEY,
+        "PHONE_HASH_SALT": settings.PHONE_HASH_SALT,
+        "DATABASE_URL": settings.DATABASE_URL,
+        "SASPAY_API_KEY": settings.SASPAY_API_KEY,
+        "SASPAY_WEBHOOK_SECRET": settings.SASPAY_WEBHOOK_SECRET,
+    }
+    
+    # Valeurs de développement interdites en production
+    dev_values = {
+        "JWT_SECRET_KEY": [
+            "",
+            "surcheck_jwt_secret_key_development_only_change_in_production",
+            "surcheck_jwt_secret_key_production_grade_super_secret_bj",
+        ],
+        "PHONE_HASH_SALT": [
+            "",
+            "surcheck_bj_secure_salt_2026_antigravity_trust",
+        ],
+        "DATABASE_URL": [
+            "",
+            "postgresql://postgres:postgres@localhost:5432/surcheck_dev",
+        ],
+        "SASPAY_API_KEY": [""],
+        "SASPAY_WEBHOOK_SECRET": [""],
+    }
+    
+    for secret_name, secret_value in critical_secrets.items():
+        # Vérifier si vide ou valeur de développement
+        if secret_value in dev_values.get(secret_name, []):
+            errors.append(
+                f"❌ {secret_name} est manquant ou utilise une valeur de développement"
+            )
+        # Vérifier clés API SasPay (ne doivent pas être en mode test en production)
+        elif secret_name == "SASPAY_API_KEY" and secret_value.startswith("sk_test_"):
+            errors.append(
+                f"⚠️ {secret_name} utilise une clé de test (sk_test_*) en production - utiliser sk_live_*"
+            )
+    
+    if errors:
+        logger.error("=" * 80)
+        logger.error("🚨 ÉCHEC DE VALIDATION DES SECRETS EN PRODUCTION")
+        logger.error("=" * 80)
+        for error in errors:
+            logger.error(error)
+        logger.error("")
+        logger.error("L'application refuse de démarrer pour des raisons de sécurité.")
+        logger.error("Configurez les variables d'environnement dans Railway/Vercel.")
+        logger.error("")
+        logger.error("Voir : SECRETS_COMPROMIS_A_REGENERER.md")
+        logger.error("=" * 80)
+        sys.exit(1)  # Arrêt immédiat
+    
+    logger.info("✅ Validation des secrets en production : OK")
+
+
+# Validation des secrets au démarrage (avant création de l'app)
+validate_production_secrets()
 
 # Limiteur de débit (désactivé pendant les tests automatisés)
 is_testing = os.getenv("TESTING", "0") == "1" or settings.ENVIRONMENT == "test"

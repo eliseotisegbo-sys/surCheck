@@ -23,40 +23,27 @@ class Settings(BaseSettings):
     ]
 
     # Sécurité & Hachage des numéros
-    PHONE_HASH_SALT: str = os.getenv(
-        "PHONE_HASH_SALT", "surcheck_bj_secure_salt_2026_antigravity_trust"
-    )
-    JWT_SECRET_KEY: str = os.getenv(
-        "JWT_SECRET_KEY", "surcheck_jwt_secret_key_development_only_change_in_production"
-    )
+    # ⚠️ AUCUNE valeur par défaut pour les secrets — doit être configuré dans .env
+    PHONE_HASH_SALT: str = os.getenv("PHONE_HASH_SALT", "")
+    JWT_SECRET_KEY: str = os.getenv("JWT_SECRET_KEY", "")
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 10080  # 7 jours (7 * 24 * 60 = 10080 minutes)
 
     # Base de données PostgreSQL / Supabase
-    DATABASE_URL: str = os.getenv(
-        "DATABASE_URL",
-        "postgresql://postgres:postgres@localhost:5432/surcheck_dev",
-    )
-    SUPABASE_URL: str = os.getenv(
-        "SUPABASE_URL",
-        "https://lhxbzflectkuysaklvji.supabase.co",
-    )
-    SUPABASE_ANON_KEY: str = os.getenv(
-        "SUPABASE_ANON_KEY",
-        "sb_publishable_59E__jIIWr3HRG3XkV4Rcg_U0KZdYNH",
-    )
-    SUPABASE_SERVICE_ROLE_KEY: str = os.getenv(
-        "SUPABASE_SERVICE_ROLE_KEY",
-        "",
-    )
+    # ⚠️ DATABASE_URL ne doit JAMAIS contenir de mot de passe par défaut
+    DATABASE_URL: str = os.getenv("DATABASE_URL", "")
+    
+    # Supabase URL et clés publiques (anon_key est publique, pas sensible)
+    SUPABASE_URL: str = os.getenv("SUPABASE_URL", "")
+    SUPABASE_ANON_KEY: str = os.getenv("SUPABASE_ANON_KEY", "")
+    
+    # ⚠️ Service role key = accès admin complet — JAMAIS de valeur par défaut
+    SUPABASE_SERVICE_ROLE_KEY: str = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
 
     # SasPay API (Softpay Mobile Money - Provider unique)
-    SASPAY_API_KEY: str = os.getenv(
-        "SASPAY_API_KEY", ""  # sk_test_xxx pour sandbox, sk_live_xxx pour prod
-    )
-    SASPAY_BASE_URL: str = os.getenv(
-        "SASPAY_BASE_URL", "https://api.saspay.me/api/v1"
-    )
+    # ⚠️ Clés API et webhook secrets ne doivent JAMAIS avoir de valeur par défaut
+    SASPAY_API_KEY: str = os.getenv("SASPAY_API_KEY", "")  # sk_test_xxx (sandbox) ou sk_live_xxx (prod)
+    SASPAY_BASE_URL: str = os.getenv("SASPAY_BASE_URL", "https://api.saspay.me/api/v1")
     SASPAY_WEBHOOK_SECRET: str = os.getenv("SASPAY_WEBHOOK_SECRET", "")
 
     # Tarifs officiels SûrCheck (packs de crédits)

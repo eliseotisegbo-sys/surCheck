@@ -12,6 +12,7 @@ class RiskLevel(str, Enum):
     FAIBLE = "faible"
     PRUDENCE = "prudence"
     ELEVE = "eleve"
+    INDETERMINE = "indetermine"
 
 
 class ContentType(str, Enum):

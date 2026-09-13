@@ -111,7 +111,17 @@ async def register(user: UserRegister):
     email_clean = user.email.strip().lower()
 
     # Vérification d'existence préalable
-    existing_user = await supabase_db.get_user_by_email(email_clean)
+    try:
+        existing_user = await supabase_db.get_user_by_email(email_clean)
+    except Exception as e:
+        import logging
+        logger = logging.getLogger("surcheck.auth")
+        logger.error(f"Erreur vérification email existant: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Service d'inscription temporairement indisponible. Réessayez dans quelques instants."
+        )
+    
     if existing_user or email_clean in IN_MEMORY_USERS:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -121,11 +131,17 @@ async def register(user: UserRegister):
     hashed = hash_password(user.password)
 
     # Persistance Supabase
-    created = await supabase_db.create_user(
-        name=user.name.strip(),
-        email=email_clean,
-        password_hash=hashed,
-    )
+    try:
+        created = await supabase_db.create_user(
+            name=user.name.strip(),
+            email=email_clean,
+            password_hash=hashed,
+        )
+    except Exception as e:
+        import logging
+        logger = logging.getLogger("surcheck.auth")
+        logger.error(f"Erreur création utilisateur Supabase: {e}")
+        created = None
 
     if created:
         user_id = created.get("id")
@@ -134,6 +150,10 @@ async def register(user: UserRegister):
         paid_credits = created.get("paid_credits_balance", 0)
     else:
         # Fallback mémoire résilient
+        import logging
+        logger = logging.getLogger("surcheck.auth")
+        logger.warning(f"Fallback mémoire activé pour inscription de {email_clean}")
+        
         user_id = str(uuid.uuid4())
         user_name = user.name.strip()
         free_quota = 5
