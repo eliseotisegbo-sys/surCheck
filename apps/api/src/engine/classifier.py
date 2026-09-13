@@ -210,6 +210,26 @@ TRAINING_DATA = [
     ("C'est ta cousine telephone vole. Hopital pour intoxication. Frais soins 22.000 F avant sortie.", "Urgence médicale suspecte"),
     ("Urgence grand-mere cardiaque. Pacemaker 150.000 F manque. Famille a cotise envoie ta part 40.000 F.", "Urgence médicale suspecte"),
 
+    # 10bis. Scénarios Usurpation Identité / Romance (18 exemples)
+    ("Bonjour c'est moi, j'ai changé de numéro après avoir perdu mon téléphone. Peux-tu m'envoyer 10.000 FCFA en urgence, je te rembourse dès que possible.", "Usurpation identité"),
+    ("Papa c'est ton fils, mon telephone est casse. J'ai besoin 25.000 F pour reparation urgente. Envoie a ce numero 97555555.", "Usurpation identité"),
+    ("Salut c'est ta soeur, nouveau numero WhatsApp. Probleme bancaire urgent besoin 35.000 FCFA prete-moi vite.", "Usurpation identité"),
+    ("Mon cheri c'est moi nouvelle puce. Mon compte Mobile Money bloque besoin 20.000 F depannage urgent.", "Usurpation identité"),
+    ("Bonjour oncle nouveau contact sauvegarde. Accident besoin argent hopital 40.000 FCFA aide-moi.", "Usurpation identité"),
+    ("Maman telephone vole change numero. Besoin 15.000 F acheter nouvelle carte SIM et credit.", "Usurpation identité"),
+    ("C'est ton frere perdu portable. Urgent besoin 30.000 FCFA reglement facture sinon coupure. Aide.", "Usurpation identité"),
+    ("Salut ami WhatsApp pirate nouveau numero. Peux-tu recevoir virement 100.000 F sur ton compte pour moi?", "Usurpation identité"),
+    ("Cherie c'est moi mission etranger. Mon compte bloque temporairement besoin 50.000 F urgent retransfere.", "Usurpation identité"),
+    ("Papa telephone casse urgence. Besoin 45.000 FCFA reparer sinon perds tout. Envoie ce soir.", "Usurpation identité"),
+    ("Ton cousin nouveau numero ligne precedente coupee. Besoin 18.000 F depot urgent aide moi.", "Usurpation identité"),
+    ("Salut tante portable vole numero provisoire. Urgent 22.000 FCFA medicaments maman rembourse demain.", "Usurpation identité"),
+    ("Bonjour mon ami je suis bloque Parakou. Telephone vole besoin 28.000 F transport retour Cotonou.", "Usurpation identité"),
+    ("C'est ta niece WhatsApp change numero. Besoin 12.000 FCFA urgent frais scolarite demain aide.", "Usurpation identité"),
+    ("Mon amour nouveau telephone ancien casse. Compte bancaire probleme besoin 38.000 F urgent depanne.", "Usurpation identité"),
+    ("Salut neveu numero temporaire. Urgence familiale besoin 32.000 FCFA cotisation enterrement envoie.", "Usurpation identité"),
+    ("Bonjour belle-soeur portable perdu nouveau contact. Besoin 16.000 F urgent marche demain rembourse.", "Usurpation identité"),
+    ("Papa c'est fille telephone vole. Commissariat besoin 24.000 FCFA declaration plainte urgent envoie.", "Usurpation identité"),
+
     # 11. Scénarios Faux Support Technique (12 exemples)
     ("Votre telephone Android infecte 4 virus. Telechargez antivirus sur ce lien avant suppression donnees.", "Faux support technique"),
     ("Microsoft: Licence Windows expiree. Renouvelez sur support-windows-africa.com avec code activation.", "Faux support technique"),

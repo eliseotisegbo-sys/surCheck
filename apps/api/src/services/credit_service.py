@@ -74,8 +74,12 @@ class CreditService:
         pack_code: str,
         raw_event_id: str = "",
         raw_payload: Optional[Dict[str, Any]] = None,
+        provider_name: str = "saspay",
     ) -> Tuple[bool, str]:
-        """Attribue les crédits après validation serveur du paiement Chariow de façon strictement idempotente.
+        """Attribue les crédits après validation serveur du paiement de façon strictement idempotente.
+        
+        Args:
+            provider_name: Nom du provider de paiement ("saspay", "chariow", etc.)
 
         Retourne : (succès: bool, message: str)
         """
@@ -84,14 +88,14 @@ class CreditService:
 
         try:
             async with httpx.AsyncClient(timeout=6.0) as client:
-                # 1. Vérification anti-doublon absolue sur la vente Chariow
+                # 1. Vérification anti-doublon absolue sur la vente du provider
                 check_sale = await client.get(
                     f"{self.supabase.url}/rest/v1/payment_transactions"
-                    f"?provider=eq.chariow&external_sale_id=eq.{sale_id}&status=eq.successful&select=id",
+                    f"?provider=eq.{provider_name}&external_sale_id=eq.{sale_id}&status=eq.successful&select=id",
                     headers=self.supabase._get_headers(),
                 )
                 if check_sale.status_code == 200 and check_sale.json():
-                    logger.info(f"Vente Chariow {sale_id} déjà traitée avec succès — idempotent.")
+                    logger.info(f"Vente {provider_name} {sale_id} déjà traitée avec succès — idempotent.")
                     return True, "Vente déjà traitée."
 
                 # 2. Récupérer le solde avant opération
@@ -118,9 +122,9 @@ class CreditService:
                         "amount": credits,
                         "balance_before": balance_before,
                         "balance_after": balance_after,
-                        "reference_type": "chariow_sale",
+                        "reference_type": f"{provider_name}_sale",
                         "reference_id": sale_id,
-                        "description": f"Achat {pack_code} ({credits} crédits) via Chariow — {amount_fcfa} FCFA",
+                        "description": f"Achat {pack_code} ({credits} crédits) via {provider_name.capitalize()} — {amount_fcfa} FCFA",
                     },
                 )
 
@@ -156,7 +160,7 @@ class CreditService:
                         json={
                             "id": new_ptx_id,
                             "user_id": user_id,
-                            "provider": "chariow",
+                            "provider": provider_name,
                             "external_sale_id": sale_id,
                             "idempotency_key": raw_event_id or sale_id,
                             "pack_name": pack_code,
@@ -172,7 +176,7 @@ class CreditService:
 
                 logger.info(
                     f"Succès attribution crédits : +{credits} pour user {user_id} "
-                    f"(vente {sale_id}, solde {balance_before} -> {balance_after})"
+                    f"(vente {sale_id} via {provider_name}, solde {balance_before} -> {balance_after})"
                 )
                 return True, f"{credits} crédits ajoutés avec succès."
 

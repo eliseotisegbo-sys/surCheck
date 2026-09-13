@@ -1,5 +1,5 @@
 """Router d'administration et de réconciliation financière pour SûrCheck AI.
-Conforme aux sections 24 & 27 du document de cadrage technique Chariow.
+Conforme aux sections 24 & 27 du document de cadrage technique.
 """
 
 import logging
@@ -9,8 +9,9 @@ import httpx
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from ..routers.auth import get_current_user
-from ..services.chariow_provider import chariow_provider
+from ..services.saspay_provider import saspay_provider
 from ..services.supabase_db import supabase_db
+from ..config import settings
 
 logger = logging.getLogger("surcheck.admin")
 
@@ -102,26 +103,37 @@ async def list_admin_credits(
 async def reconcile_payments(
     current_user: Dict[str, Any] = Depends(get_current_user),
 ):
-    """Compare les ventes enregistrées côté Chariow et les transactions SûrCheck pour détecter d'éventuels écarts."""
+    """Compare les transactions enregistrées côté SasPay et les transactions SûrCheck pour détecter d'éventuels écarts.
+    
+    Utilise l'API SasPay /transactions/ (documentation: https://docs.saspay.me/api-reference/transactions/list)
+    """
     _require_admin(current_user)
 
     try:
-        # 1. Récupérer les ventes côté Chariow
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            chariow_res = await client.get(
-                f"{chariow_provider.base_url}/sales",
-                headers=chariow_provider._headers(),
+        # 1. Récupérer les transactions côté SasPay
+        # API SasPay : GET /api/v1/transactions/ avec pagination par curseur
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            saspay_res = await client.get(
+                f"{saspay_provider.base_url}/transactions/",
+                headers=saspay_provider._headers(),
+                params={
+                    "status": "SUCCESS",  # Filtrer uniquement les transactions réussies
+                    "limit": 100,  # Paginer si nécessaire (ajuster selon volume)
+                }
             )
-            chariow_sales = (
-                chariow_res.json().get("data", {}).get("sales", [])
-                if chariow_res.status_code == 200
-                else []
-            )
+            
+            if saspay_res.status_code == 200:
+                saspay_data = saspay_res.json()
+                # SasPay retourne {results: [...], next: cursor, ...}
+                saspay_transactions = saspay_data.get("results", saspay_data.get("data", []))
+            else:
+                logger.warning(f"Erreur récupération SasPay ({saspay_res.status_code}): {saspay_res.text}")
+                saspay_transactions = []
 
-        # 2. Récupérer les transactions côté SûrCheck
+        # 2. Récupérer les transactions côté SûrCheck (provider = 'saspay')
         async with httpx.AsyncClient(timeout=5.0) as client:
             db_res = await client.get(
-                f"{supabase_db.url}/rest/v1/payment_transactions?provider=eq.chariow&select=external_sale_id,status,amount_fcfa",
+                f"{supabase_db.url}/rest/v1/payment_transactions?provider=eq.saspay&select=external_sale_id,status,amount_fcfa",
                 headers=supabase_db._get_headers(),
             )
             db_txs = db_res.json() if db_res.status_code == 200 else []
@@ -133,27 +145,32 @@ async def reconcile_payments(
         }
 
         # 3. Détection des anomalies
-        unmatched_chariow_sales: List[Dict[str, Any]] = []
+        # SasPay utilise "reference" comme identifiant de transaction (équivalent sale_id)
+        unmatched_saspay_transactions: List[Dict[str, Any]] = []
         matched_count = 0
 
-        for sale in chariow_sales:
-            sale_id = sale.get("id")
-            if sale_id in db_sale_ids:
+        for txn in saspay_transactions:
+            # SasPay : champ "reference" ou "id" selon structure réelle de l'API
+            txn_id = txn.get("reference") or txn.get("id")
+            if txn_id in db_sale_ids:
                 matched_count += 1
             else:
-                unmatched_chariow_sales.append({
-                    "chariow_sale_id": sale_id,
-                    "customer": sale.get("customer"),
-                    "amount": sale.get("amount"),
-                    "created_at": sale.get("created_at"),
+                unmatched_saspay_transactions.append({
+                    "saspay_transaction_id": txn_id,
+                    "customer_email": txn.get("customer_email"),
+                    "amount": txn.get("net_amount") or txn.get("amount"),  # Utiliser net_amount (montant reçu)
+                    "currency": txn.get("currency", "XOF"),
+                    "created_at": txn.get("created_at"),
+                    "status": txn.get("status"),
                 })
 
         return {
-            "reconciliation_status": "ok" if len(unmatched_chariow_sales) == 0 else "anomalies_detected",
+            "reconciliation_status": "ok" if len(unmatched_saspay_transactions) == 0 else "anomalies_detected",
             "matched_sales_count": matched_count,
-            "unmatched_sales_count": len(unmatched_chariow_sales),
-            "unmatched_sales": unmatched_chariow_sales,
-            "total_chariow_sales_checked": len(chariow_sales),
+            "unmatched_sales_count": len(unmatched_saspay_transactions),
+            "unmatched_sales": unmatched_saspay_transactions,
+            "total_saspay_transactions_checked": len(saspay_transactions),
+            "note": "Réconciliation basée sur l'API SasPay /transactions/. Ajuster pagination si volume > 100 transactions.",
         }
 
     except Exception as e:

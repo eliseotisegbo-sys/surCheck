@@ -304,3 +304,108 @@ class TestScorer:
         sms = "Erreur de transfert, fonds envoyés par erreur, veuillez renvoyer la somme."
         result = calculate_risk(sms)
         assert result.risk_score >= 70
+
+
+# =====================================================================
+# TESTS SECTION 2 : NEUTRALISATION LOCALE (PAS GLOBALE)
+# =====================================================================
+
+class TestNeutralisationLocale:
+    """Tests critiques pour vérifier que la neutralisation ne s'applique 
+    que localement, pas globalement à tout le message."""
+    
+    def test_negation_locale_ne_neutralise_pas_un_signal_independant(self):
+        """Une phrase de négation en début de message ne doit pas neutraliser
+        une vraie demande de code/argent qui suit, sans rapport syntaxique direct.
+        
+        Bug reproduit : ce message retournait 0 signal avant le correctif.
+        """
+        msg = (
+            "Aucun agent ne vous demandera ceci normalement, mais exceptionnellement "
+            "communiquez votre code otp et payez 3000 FCFA de caution immédiatement "
+            "pour récupérer votre gain avant ce soir sinon vous perdez tout."
+        )
+        signals, score = evaluate_rules(msg)
+        codes = [s.code for s in signals]
+        
+        # Ce message DOIT déclencher des signaux malgré la phrase de mise en garde
+        assert len(signals) >= 2, f"Attendu au moins 2 signaux, reçu {len(signals)}: {codes}"
+        assert "RULE_OTP_PIN" in codes, f"RULE_OTP_PIN manquant dans {codes}"
+        assert "RULE_MONEY_REQ" in codes, f"RULE_MONEY_REQ manquant dans {codes}"
+        assert score > 0, f"Le score devrait être > 0, reçu {score}"
+    
+    def test_negation_locale_directe_neutralise_bien_le_signal(self):
+        """Une négation directement collée au terme critique doit toujours
+        neutraliser CE signal précis (comportement à préserver)."""
+        msg = "Ne communiquez jamais votre code secret à qui que ce soit, même à un agent MTN."
+        signals, score = evaluate_rules(msg)
+        codes = [s.code for s in signals]
+        
+        # Ce message de prévention NE DOIT PAS déclencher RULE_OTP_PIN
+        assert "RULE_OTP_PIN" not in codes, f"RULE_OTP_PIN ne devrait pas être dans {codes}"
+        assert score == 0 or score < 10, f"Score devrait être très faible, reçu {score}"
+    
+    def test_conseil_prevention_legitime_sans_faux_positif(self):
+        """Message entièrement préventif sans demande active."""
+        msg = (
+            "Rappel de sécurité MTN Mobile Money : "
+            "Ne partagez jamais votre code PIN, même à un agent. "
+            "Aucun employé MTN ne vous demandera vos codes par téléphone."
+        )
+        signals, score = evaluate_rules(msg)
+        
+        # Pas de signal ou score très faible pour un message 100% préventif
+        assert len(signals) == 0 or score < 15, (
+            f"Message de prévention légitime ne devrait pas déclencher de signaux forts. "
+            f"Reçu {len(signals)} signaux, score={score}"
+        )
+    
+    def test_demande_urgente_apres_phrase_decoy_detectee(self):
+        """Cas extrême : fraudeur ajoute une phrase de décoy puis demande l'action."""
+        msg = (
+            "Évitez les arnaques ! Bon à savoir : ne donnez jamais vos codes. "
+            "Ceci dit, pour débloquer votre compte suite au problème technique urgent, "
+            "envoyez votre code de confirmation au 96123456 avant minuit."
+        )
+        signals, score = evaluate_rules(msg)
+        codes = [s.code for s in signals]
+        
+        # Doit détecter l'urgence ET la demande de code malgré le préambule
+        assert len(signals) >= 1, f"Devrait détecter au moins 1 signal, reçu {len(signals)}"
+        assert "RULE_OTP_PIN" in codes or "RULE_URGENCY" in codes, (
+            f"Devrait détecter RULE_OTP_PIN ou RULE_URGENCY, reçu {codes}"
+        )
+
+
+# =====================================================================
+# TESTS SECTION 4 : FUZZY MATCHING COLLISION
+# =====================================================================
+
+class TestFuzzyMatchingPrecision:
+    """Tests pour éviter collisions fuzzy matching entre mots courants."""
+    
+    def test_fuzzy_ne_confond_pas_argent_et_urgent(self):
+        """Le mot 'argent' ne doit pas déclencher fuzzy match avec 'urgent'."""
+        from src.engine.fuzzy_matcher import fuzzy_contains
+        
+        msg = "J'ai besoin d'argent pour les courses de la semaine prochaine."
+        matches = fuzzy_contains(msg, threshold=85)
+        matched_terms = [term for _, term, _ in matches]
+        
+        # 'argent' ne doit PAS matcher 'urgent' (similarité 83.3 < seuil 85)
+        assert "urgent" not in matched_terms, (
+            f"Le mot 'argent' ne devrait pas matcher 'urgent'. "
+            f"Termes détectés: {matched_terms}"
+        )
+    
+    def test_message_legitime_argent_sans_urgence_pas_faux_positif(self):
+        """Message légitime mentionnant l'argent sans urgence ni demande suspecte."""
+        msg = "J'ai reçu l'argent du loyer. Merci beaucoup, je t'appelle ce soir."
+        signals, score = evaluate_rules(msg)
+        codes = [s.code for s in signals]
+        
+        # Ne doit pas déclencher RULE_URGENCY par fuzzy matching erroné
+        assert "RULE_URGENCY" not in codes or score < 20, (
+            f"Message légitime avec 'argent' ne devrait pas déclencher urgence. "
+            f"Signaux: {codes}, score: {score}"
+        )

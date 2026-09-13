@@ -285,6 +285,7 @@ async def handle_payment_webhook(request: Request):
             pack_code=event.pack_id or "pack_custom",
             raw_event_id=event.delivery_id,
             raw_payload=event.raw_payload,
+            provider_name="saspay",
         )
 
         # Si l'achat concernait directement une analyse spécifique (achat direct 300 F)

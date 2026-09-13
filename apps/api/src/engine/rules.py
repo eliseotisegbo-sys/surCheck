@@ -145,19 +145,16 @@ def evaluate_rules(text: str) -> Tuple[List[DetectedSignal], int]:
     """Évalue le texte contre les règles déterministes.
     Retourne la liste des signaux détectés et le score brut cumulé.
     
-    Gère la négation et le contexte narratif pour éviter les faux positifs
-    sur les messages de prévention. Applique la normalisation anti-obfuscation
-    et le fuzzy matching pour tolérer les fautes de frappe.
+    Gère la négation locale pour éviter les faux positifs sur les messages
+    de prévention, mais une phrase de mise en garde en début de message
+    ne doit pas neutraliser une vraie demande de code/argent qui suit.
+    Applique la normalisation anti-obfuscation et le fuzzy matching.
     """
     detected_signals: List[DetectedSignal] = []
     total_rule_score = 0
     
     # Normaliser le texte pour contrer l'obfuscation (leetspeak, espacement, etc.)
-    # Garder le texte original pour l'affichage des extraits
     text_normalized = normalize_text(text, apply_leet=True)
-    
-    # Vérifier si tout le message est dans un contexte narratif/préventif
-    is_narrative = has_narrative_context(text)
     
     # Fuzzy matching pour détecter variantes avec fautes de frappe
     fuzzy_categories = enhance_rules_with_fuzzy(text_normalized, threshold=85)
@@ -187,12 +184,13 @@ def evaluate_rules(text: str) -> Tuple[List[DetectedSignal], int]:
                 # Fuzzy match : utiliser position approximative (milieu du texte)
                 match_position = len(text) // 2
             
-            # Vérifier la négation locale avant ce match spécifique
+            # Vérifier UNIQUEMENT la négation locale avant ce match spécifique
+            # Une négation doit être syntaxiquement proche du terme pour le neutraliser
             has_local_negation = has_negation_before(text, match_position)
             
-            # Si négation détectée ET contexte narratif global, ne pas compter ce signal
-            if has_local_negation or is_narrative:
-                # Signal détecté mais neutralisé (contenu préventif)
+            # Ne neutraliser QUE si négation locale directe (pas de neutralisation globale)
+            if has_local_negation:
+                # Signal détecté mais neutralisé par négation locale (ex: "ne donnez jamais votre code")
                 continue
             
             # Récupérer l'extrait du texte ORIGINAL (non normalisé) pour l'affichage
